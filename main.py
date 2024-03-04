@@ -1,14 +1,20 @@
 #!/usr/bin/python3
 
 from signal import signal, SIGTERM, SIGHUP, pause
-from gpiozero import Button, DigitalInputDevice, DigitalOutputDevice, Servo, Motor
+from gpiozero import (
+    Button,
+    DigitalInputDevice,
+    DigitalOutputDevice,
+    Servo,
+    PhaseEnableMotor,
+)
 import threading
 
 iniciar = Button(2)
 parar = Button(3)
 sensor_limite = DigitalInputDevice(4)
 bomba = DigitalOutputDevice(12)
-motor_escobilla = Motor(9)
+motor_escobilla = PhaseEnableMotor(9, 12)
 servo_sapo = Servo(9)
 servo_tunel = Servo(11)
 
@@ -24,16 +30,21 @@ def start():
 
 
 def stop():
-    print("Parar")
+    if parar.is_held:
+        bomba.value = False
+        servo_sapo.value = 0
+        servo_tunel.value = 0
+
+    pause()
 
 
 try:
     signal(SIGTERM, safe_exit)
     signal(SIGHUP, safe_exit)
 
-    comenzar = threading.Thread(name="Estado Activo", target=start)
-    parar.when_pressed = stop
-    iniciar.when_pressed = comenzar.start
+    parada = threading.Thread(name="Parada de emergencia", target=stop)
+    parada.start()
+    iniciar.when_pressed = start
 
     pause()
 
