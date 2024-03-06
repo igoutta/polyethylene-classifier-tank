@@ -8,7 +8,6 @@ from gpiozero import (
     Servo,
     PhaseEnableMotor,
 )
-import threading
 from time import monotonic, sleep
 import sys
 
@@ -32,46 +31,50 @@ sensor_limite = DigitalInputDevice(FIN_CARRERA)
 bomba = DigitalOutputDevice(RELE_BOMBA)
 motor_nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP)
 servo_sapo = Servo(pin=SAPO, initial_value=CERRADO)
-servo_tunel = Servo(pin=TUNEL, initial_value=ABIERTO)
-tiempo_inicio: float = None
-tiempo_fin: float = None
+servo_tunel = Servo(pin=TUNEL, initial_value=CERRADO)
+tiempos = {"inicio": None, "fin": None}
 
 
-def start():
-    # Condición necesaria para desfogar
+def main():
     bomba.on()  # Activar la bomba para cumplir la condición
-    sensor_limite.wait_for_active()
-    # Determinar tiempos para medir
-    if tiempo_inicio is None:
-        tiempo_inicio = monotonic()
-        tiempo_fin = monotonic()
-    TIEMPO_DESFOGUE_SEC = 120
-    # Desfogue
-    while (tiempo_fin - tiempo_inicio) < TIEMPO_DESFOGUE_SEC:
-        bomba.off()
-        motor_nema.forward(speed=1)
-        servo_tunel.value = CERRADO
-        servo_sapo.value = ABIERTO
-        tiempo_fin = monotonic()
-    # Final de desfogue
-    else:
-        bomba.on()
-        tiempo_inicio = None
-        servo_sapo.value = CERRADO
-        sleep(1.5)
-        servo_tunel.value = ABIERTO
+    servo_sapo.value = CERRADO  # Cerrar para cumplir condición
+    servo_tunel.value = CERRADO  # Cerrar para cumplir condición
+    custom_sleep(1)
+    sensor_limite.wait_for_active()  # Condición necesaria para desfogar
+    # Limpieza
+    bomba.off()  # Apagar para no desbordar
+    motor_nema.forward(speed=1)  # Limpiar
+    TIEMPO_LIMPIEZA_SEC = 120
+    custom_sleep(TIEMPO_LIMPIEZA_SEC)
+    motor_nema.stop()  # Apagar para desfogue
+    servo_sapo.value = ABIERTO
+    TIEMPO_DESFOGUE_SEC = 15
+    custom_sleep(TIEMPO_DESFOGUE_SEC)
+    servo_sapo.value = CERRADO
+    TIEMPO_FINAL_SEC = 10
+    custom_sleep(TIEMPO_FINAL_SEC)
+    servo_tunel.value = ABIERTO
+    custom_sleep(1)
+    # Parada total de desfogue
+    stop()
+
+
+def custom_sleep(tiempo: float):
+    tiempos["inicio"] = monotonic()
+    tiempos["fin"] = monotonic()
+    while not boton_parar.is_pressed and (
+        (tiempos["fin"] - tiempos["inicio"]) < tiempo
+    ):
+        tiempos["fin"] = monotonic()
 
 
 def stop():
     bomba.off()
     motor_nema.stop()
     servo_sapo.value = CERRADO
-    servo_tunel.value = ABIERTO
-
-
-def emergency_stop():
-    boton_parar.when_pressed = stop
-    pause()
+    sleep(2)
+    servo_tunel.value = CERRADO
+    sleep(0.02)
 
 
 def safe_exit(signum, frame):
@@ -82,10 +85,8 @@ try:
     signal(SIGTERM, safe_exit)
     signal(SIGHUP, safe_exit)
 
-    parada = threading.Thread(name="Parada de emergencia", target=stop)
-    parada.start()
-
-    boton_activar.when_pressed = start
+    boton_activar.when_pressed = main
+    boton_parar.when_pressed = stop
 
     pause()
 
@@ -93,4 +94,9 @@ except KeyboardInterrupt:
     pass
 
 finally:
-    pass
+    bomba.off()
+    bomba.close()
+    motor_nema.stop()
+    motor_nema.close()
+    servo_sapo.close()
+    servo_tunel.close()
