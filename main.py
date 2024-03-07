@@ -15,9 +15,10 @@ import sys
 INICIAR = "J8:38"
 PARAR = "J8:40"
 FIN_CARRERA = "J8:36"
-RELE_BOMBA = "J8:7"
-NEMA_STEP = "J8:3"
-NEMA_DIR = "J8:5"
+RELE_LLENADO = "J8:7"
+RELE_CORRIENTE = "J8:11"
+NEMA_STEP = "J8:13"
+NEMA_DIR = "J8:15"
 # *PWM
 SAPO = "J8:32"
 TUNEL = "J8:33"
@@ -28,7 +29,8 @@ ABIERTO = 1
 boton_activar = Button(INICIAR)
 boton_parar = Button(PARAR)
 sensor_limite = DigitalInputDevice(FIN_CARRERA)
-bomba = DigitalOutputDevice(RELE_BOMBA)
+bomba_llenado = DigitalOutputDevice(RELE_LLENADO)
+bomba_corriente = DigitalOutputDevice(RELE_CORRIENTE)
 motor_nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP)
 servo_sapo = Servo(pin=SAPO, initial_value=CERRADO)
 servo_tunel = Servo(pin=TUNEL, initial_value=CERRADO)
@@ -36,13 +38,14 @@ tiempos = {"inicio": None, "fin": None}
 
 
 def main():
-    bomba.on()  # Activar la bomba para cumplir la condición
+    bomba_llenado.on()  # Activar la bomba para cumplir la condición
     servo_sapo.value = CERRADO  # Cerrar para cumplir condición
     servo_tunel.value = CERRADO  # Cerrar para cumplir condición
     custom_sleep(1)
     sensor_limite.wait_for_active()  # Condición necesaria para desfogar
     # Limpieza
-    bomba.off()  # Apagar para no desbordar
+    bomba_llenado.off()  # Apagar para no desbordar
+    bomba_corriente.on()  # Prender para circular el agua
     motor_nema.forward(speed=1)  # Limpiar
     TIEMPO_LIMPIEZA_SEC = 120
     custom_sleep(TIEMPO_LIMPIEZA_SEC)
@@ -69,7 +72,8 @@ def custom_sleep(tiempo: float):
 
 
 def stop():
-    bomba.off()
+    bomba_llenado.off()
+    bomba_corriente.off()
     motor_nema.stop()
     servo_sapo.value = CERRADO
     sleep(2)
@@ -94,8 +98,10 @@ except KeyboardInterrupt:
     pass
 
 finally:
-    bomba.off()
-    bomba.close()
+    bomba_llenado.off()
+    bomba_corriente.off()
+    bomba_llenado.close()
+    bomba_corriente.close()
     motor_nema.stop()
     motor_nema.close()
     servo_sapo.close()
