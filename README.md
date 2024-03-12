@@ -54,3 +54,9 @@ Basicamente consiste en asigna como evento las funciones segun el boton, la func
 
 > pause() es el comando para mantener corriendo indefinidamente el algoritmo, mientras que deja activar los botones.
 
+## Auto Iniciar el script.
+
+Crear un servicio con `sudo nano /etc/systemd/system/polyethylene-classifier-tank.service`
+
+```properties
+```

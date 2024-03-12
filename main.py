@@ -8,6 +8,8 @@ from gpiozero import (
     Servo,
     PhaseEnableMotor,
 )
+from HX711 import SimpleHX711
+from RPLCD import CharLCD
 from time import monotonic, sleep
 import sys
 
@@ -15,6 +17,10 @@ import sys
 INICIAR = "J8:38"
 PARAR = "J8:40"
 FIN_CARRERA = "J8:36"
+GALGA_DATA = "J8:21"
+GALGA_CLK = "J8:23"
+LCD_SDA = "J8:3"
+LCD_SCK = "J8:5"
 RELE_LLENADO = "J8:7"
 RELE_CORRIENTE = "J8:11"
 NEMA_STEP = "J8:13"
