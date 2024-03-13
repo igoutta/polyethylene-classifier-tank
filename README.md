@@ -27,9 +27,11 @@ Se pueden diferenciar tres grandes grupos: entradas, salidas y tiempos de ejecuc
 Fragmentar el algoritmo en partes que tienen una finalidad, ayuda a la legibilidad y facilita de mantenimiento de éste. En este caso, gracias a que la secuencia está bien delimitada y no existen condiciones de carrera, sólo son tres funciones: la principal, una auxiliar para crear retraso en el script, y la de parada.
 
 La función principal, llamada main se divide en tres grandes bloques de secuencias: preparación, desfogue y parada.
+
 - La fase de preparación se encarga de dos cosas: prender la bomba y esperar que el sensor de final de carrera detecte que la piscina está llena. Además, guarda el tiempo para usar en el desfogue.
 - La fase de desfogue es la que utiliza los motores para limpiar el tanque de los restos de polietilenos y se abre el tubo de escape de agua.
 - En la fase de parada el sistema apaga el motor de limpieza y cierra la piscina, tapando en tubo de escape y luego quitando los restos de dicho tubo.
+
 > wait_for_active() sirve para esperar indefinidamente que el sensor de fin de carrera se ponga en estado True.
 
 La función auxiliar custom_sleep sirve para esperar mientras se cumplan dos condiciones:
