@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 from RPLCD.i2c import CharLCD
-from HX711 import SimpleHX711, ReadType, Options
+from HX711 import AdvancedHX711, Rate, ReadType, Options
 from datetime import timedelta
 
 lcd = CharLCD(
@@ -17,7 +17,7 @@ DATA = 9
 # 29
 CLOCK = 11
 # 31
-with SimpleHX711(DATA, CLOCK, -7627, 3307908) as hx:
+with AdvancedHX711(DATA, CLOCK, -7627, 3307908, Rate.HZ_80) as hx:
     # hx.setReferenceUnit(-4559) and hx.setOffset(1101338)
     hx.zero(Options(timedelta(seconds=10), ReadType.Average))
     try:
