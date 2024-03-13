@@ -34,7 +34,13 @@ def main():
     servo_tunel.value = ABIERTO
     custom_sleep(1)
     # Parada total de desfogue
-    stop()
+    bomba_llenado.off()
+    bomba_corriente.off()
+    motor_nema.stop()
+    servo_sapo.value = CERRADO
+    sleep(2)
+    servo_tunel.value = CERRADO
+    sleep(0.02)
 
 
 def custom_sleep(tiempo: float):
@@ -47,7 +53,7 @@ def custom_sleep(tiempo: float):
 
 
 def stop():
-    main_process.kill()
+    main_process.kill()  # Mata el proceso main
     bomba_llenado.off()
     bomba_corriente.off()
     motor_nema.stop()
