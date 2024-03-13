@@ -2,6 +2,7 @@
 from RPLCD.i2c import CharLCD
 from HX711 import AdvancedHX711, Rate, ReadType, Options
 from datetime import timedelta
+import sys
 
 lcd = CharLCD(
     i2c_expander="PCF8574",
@@ -30,5 +31,6 @@ with AdvancedHX711(DATA, CLOCK, -7627, 3307908, Rate.HZ_80) as hx:
             print(m)
     except KeyboardInterrupt:
         print()
+    finally:
         lcd.close(clear=True)
-        exit(1)
+        sys.exit(1)
