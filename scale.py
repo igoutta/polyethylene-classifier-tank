@@ -13,17 +13,22 @@ lcd = CharLCD(
     backlight_enabled=True,
 )
 lcd.clear()
-
-with SimpleHX711(9, 11, 1, 8388607) as hx:
-    hx.zero(Options(timedelta(seconds=5), ReadType.Average))
+DATA = 9
+# 21
+CLOCK = 11
+# 23
+with SimpleHX711(DATA, CLOCK, -7627, 3307908) as hx:
+    # hx.setReferenceUnit(-4559) and hx.setOffset(1101338)
+    hx.zero(Options(timedelta(seconds=10), ReadType.Average))
     try:
         while True:
             # eg. obtain as many samples as possible within 1 second
-            m = hx.weight(timedelta(seconds=1))
+            m = hx.weight(Options(timedelta(seconds=2), ReadType.Median))
             lcd.clear()
-            lcd.write_string("Peso: ")
-            lcd.write_string(str(("0 g", m)[m != 0]))
+            lcd.write_string("Peso: \n")
+            lcd.write_string(str(("0 g", m)[m >= 0]))
             print(str(("0 g", m)[m != 0]))
+            m = 0
     except KeyboardInterrupt:
         print()
         lcd.close(clear=True)

@@ -3,44 +3,13 @@
 from signal import signal, SIGTERM, SIGHUP, pause
 from gpiozero import (
     Button,
-    DigitalInputDevice,
-    DigitalOutputDevice,
+    LED,
     Servo,
     PhaseEnableMotor,
 )
-from HX711 import SimpleHX711
-from RPLCD import CharLCD
 from time import monotonic, sleep
+import multiprocessing
 import sys
-
-# Declaración de pines
-INICIAR = "J8:38"
-PARAR = "J8:40"
-FIN_CARRERA = "J8:36"
-GALGA_DATA = "J8:21"
-GALGA_CLK = "J8:23"
-LCD_SDA = "J8:3"
-LCD_SCK = "J8:5"
-RELE_LLENADO = "J8:7"
-RELE_CORRIENTE = "J8:11"
-NEMA_STEP = "J8:13"
-NEMA_DIR = "J8:15"
-# *PWM
-SAPO = "J8:32"
-TUNEL = "J8:33"
-CERRADO = -1
-ABIERTO = 1
-
-# Instanciación de variables
-boton_activar = Button(INICIAR)
-boton_parar = Button(PARAR)
-sensor_limite = DigitalInputDevice(FIN_CARRERA)
-bomba_llenado = DigitalOutputDevice(RELE_LLENADO)
-bomba_corriente = DigitalOutputDevice(RELE_CORRIENTE)
-motor_nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP)
-servo_sapo = Servo(pin=SAPO, initial_value=CERRADO)
-servo_tunel = Servo(pin=TUNEL, initial_value=CERRADO)
-tiempos = {"inicio": None, "fin": None}
 
 
 def main():
@@ -48,7 +17,7 @@ def main():
     servo_sapo.value = CERRADO  # Cerrar para cumplir condición
     servo_tunel.value = CERRADO  # Cerrar para cumplir condición
     custom_sleep(1)
-    sensor_limite.wait_for_active()  # Condición necesaria para desfogar
+    sensor_limite.wait_for_press()  # Condición necesaria para desfogar
     # Limpieza
     bomba_llenado.off()  # Apagar para no desbordar
     bomba_corriente.on()  # Prender para circular el agua
@@ -78,6 +47,7 @@ def custom_sleep(tiempo: float):
 
 
 def stop():
+    main_process.kill()
     bomba_llenado.off()
     bomba_corriente.off()
     motor_nema.stop()
@@ -91,11 +61,44 @@ def safe_exit(signum, frame):
     sys.exit(1)
 
 
+# Declaración de pines
+INICIAR = "J8:38"
+PARAR = "J8:40"
+FIN_CARRERA = "J8:36"
+GALGA_DATA = "J8:21"
+GALGA_CLK = "J8:23"
+LCD_SDA = "J8:3"
+LCD_SCK = "J8:5"
+RELE_LLENADO = "J8:7"
+RELE_CORRIENTE = "J8:11"
+NEMA_STEP = "J8:13"
+NEMA_DIR = "J8:15"
+# *PWM
+SAPO = "J8:32"
+TUNEL = "J8:33"
+CERRADO = -1
+ABIERTO = 1
+
+# Instanciación de variables
+boton_activar = Button(INICIAR)
+boton_parar = Button(PARAR)
+sensor_limite = Button(FIN_CARRERA)
+bomba_llenado = LED(RELE_LLENADO)
+bomba_corriente = LED(RELE_CORRIENTE)
+motor_nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP)
+servo_sapo = Servo(pin=SAPO, initial_value=CERRADO)
+servo_tunel = Servo(pin=TUNEL, initial_value=CERRADO)
+
+# Procesamiento
+tiempos = {"inicio": None, "fin": None}
+main_process = multiprocessing.Process(target=main)
+
+
 try:
     signal(SIGTERM, safe_exit)
     signal(SIGHUP, safe_exit)
 
-    boton_activar.when_pressed = main
+    boton_activar.when_pressed = main_process.start
     boton_parar.when_pressed = stop
 
     pause()
@@ -104,6 +107,9 @@ except KeyboardInterrupt:
     pass
 
 finally:
+    if main_process.is_alive:
+        main_process.terminate()
+    main_process.close()
     bomba_llenado.off()
     bomba_corriente.off()
     bomba_llenado.close()
