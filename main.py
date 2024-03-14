@@ -16,7 +16,7 @@ def main():
     bomba_llenado.off()
     bomba_corriente.on()
     motor_nema.forward(speed=0.9)  # 0.9 es lo óptimo
-    TIEMPO_LIMPIEZA_SEC = 120
+    TIEMPO_LIMPIEZA_SEC = 60
     sleep(TIEMPO_LIMPIEZA_SEC)
     print("Inicia el desfogue por el tubo de escape")
     motor_nema.stop()
@@ -54,7 +54,7 @@ def stop():
         servo_tunel.min()
         sleep(1.7)
         servo_tunel.max()
-        sleep(1.1)
+        sleep(0.95)
         servo_tunel.detach()
         blocking = False
 
