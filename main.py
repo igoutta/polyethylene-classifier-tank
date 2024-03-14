@@ -32,7 +32,7 @@ def main():
     servo_tunel.min()
     sleep(1.7)
     servo_tunel.max()
-    sleep(1.1)
+    sleep(0.95)
     servo_tunel.detach()  # Para asegurar que este apagado
     print("Termina el proceso")
 

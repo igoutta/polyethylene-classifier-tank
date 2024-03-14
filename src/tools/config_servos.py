@@ -22,10 +22,11 @@ try:
         sleep(2)
         servo_sapo.max()
         sleep(2)
+        servo_sapo.detach()
         servo_tunel.min()
         sleep(1.7)
         servo_tunel.max()
-        sleep(1.1)
+        sleep(0.95)
         servo_tunel.detach()
 except KeyboardInterrupt:
     exit(1)

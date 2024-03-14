@@ -18,4 +18,5 @@ except KeyboardInterrupt:
 
 finally:
     nema.stop()
+    sleep(1)
     nema.close()
