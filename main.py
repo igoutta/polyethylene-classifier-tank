@@ -9,13 +9,13 @@ import sys
 def main():
     print("Activando bomba y cerrando valvulas de desfogue")
     bomba_llenado.on()
-    print("Esperar que se llene el tanque para hacer separaración")
+    print("Esperar que se llene el tanque para hacer separación")
     TIEMPO_LLENADO = 15
     sensor_limite.wait_for_press(timeout=TIEMPO_LLENADO)
     print("Inicia la clasificación")
     bomba_llenado.off()
     bomba_corriente.on()
-    motor_nema.forward(speed=0.99)  # 0.99 es lo óptimo
+    motor_nema.forward(speed=0.9)  # 0.9 es lo óptimo
     TIEMPO_LIMPIEZA_SEC = 120
     sleep(TIEMPO_LIMPIEZA_SEC)
     print("Inicia el desfogue por el tubo de escape")

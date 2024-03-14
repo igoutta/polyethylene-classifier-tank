@@ -1,18 +1,17 @@
 from gpiozero import PhaseEnableMotor
-from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 
 NEMA_STEP = "J8:3"
 NEMA_DIR = "J8:5"
 
-factory = PiGPIOFactory()
-nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP, pin_factory=factory)
+nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP)
 
 try:
-    nema.forward(speed=0.99)
-    sleep(3)
-    nema.backward(speed=0.99)
-    sleep(2)
+    while True:
+        nema.forward(speed=0.9)  # ni 0.999 ni 0.95 ni 1
+        sleep(45)
+        nema.reverse()
+        sleep(45)
 
 except KeyboardInterrupt:
     exit(1)
