@@ -1,5 +1,5 @@
 from signal import signal, SIGTERM, SIGHUP, pause
-from gpiozero import Button, LED, Servo, PhaseEnableMotor
+from gpiozero import Button, LED, Servo, AngularServo, PhaseEnableMotor
 from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 from multiprocessing import Process
@@ -18,7 +18,7 @@ def main():
     print("Inicia la clasificación")
     bomba_llenado.off()
     bomba_corriente.on()
-    motor_nema.forward(speed=1)
+    motor_nema.forward(speed=0.99)  # 0.99 es llo máximo
     TIEMPO_LIMPIEZA_SEC = 120
     sleep(TIEMPO_LIMPIEZA_SEC)
     print("Inicia el desfogue por el tubo de escape")
@@ -66,8 +66,8 @@ RELE_CORRIENTE = "J8:11"
 NEMA_STEP = "J8:3"
 NEMA_DIR = "J8:5"
 # *PWM
-SAPO = "J8:33"
-TUNEL = "J8:32"
+SAPO = "J8:32"
+TUNEL = "J8:33"
 
 # Declaración de pines
 factory = PiGPIOFactory()
@@ -79,7 +79,7 @@ sensor_limite = Button(
     pin=FIN_CARRERA, pull_up=False, bounce_time=0.3, pin_factory=factory
 )
 
-servo_sapo = Servo(pin=SAPO, initial_value=0, pin_factory=factory)
+servo_sapo = AngularServo(pin=SAPO, pin_factory=factory)
 servo_tunel = Servo(pin=TUNEL, initial_value=0, pin_factory=factory)
 
 motor_nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP, pin_factory=factory)
