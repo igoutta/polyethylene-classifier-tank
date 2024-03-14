@@ -68,7 +68,6 @@ After=syslog.target
 Type=simple
 User=ga
 WorkingDirectory=/home/ga/polyethylene-classifier-tank
-ExecStartPre=sudo pigpiod
 ExecStart=/usr/bin/python3 -u main.py
 StandardOutput=syslog
 StandardError=syslog
