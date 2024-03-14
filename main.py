@@ -14,9 +14,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if self.path == "/":
             self.path = "/index.html"
         # this code execute when a GET request happen, then you have to check if the request happenned because the user pressed the button
-        if self.path.find("Start=true") != -1 and not main_process.is_alive():
+        if self.path.find("Start=true") != -1 and not running:
             main_process.start()
-        if self.path.find("Stop=true") != -1 and not blocking:
+            running = True
+        if self.path.find("Stop=true") != -1 and running:
             stop()
         # do whatever you want
         return super().do_GET()
@@ -56,11 +57,10 @@ def main():
 
 
 def stop():
-    blocking = True
-    while blocking:
+    while running:
         print("Termina súbitamente el subproceso principal")
-        if main_process.is_alive():
-            main_process.terminate()
+        main_process.terminate()
+        main_process.join()
         sleep(0.1)
         print("Apaga todos los actuadores")
         bomba_llenado.off()
@@ -74,7 +74,7 @@ def stop():
         servo_tunel.max()
         sleep(0.95)
         servo_tunel.detach()
-        blocking = False
+        running = False
 
 
 def safe_exit(signum, frame):
@@ -94,9 +94,6 @@ NEMA_DIR = "J8:5"
 # *PWM
 SAPO = "J8:33"
 TUNEL = "J8:32"
-# *Server
-PORT = 8080
-myHandler = Handler
 
 # Instanciación de pines
 boton_activar = Button(pin=INICIAR)
@@ -114,24 +111,24 @@ bomba_llenado = LED(RELE_LLENADO)
 bomba_corriente = LED(RELE_CORRIENTE)
 
 # Instancias de procesamiento
-blocking = False
-main_process: Process = Process(target=main, name="Principal", daemon=True)
+running = False
+main_process = Process(target=main, name="Principal", daemon=True)
+# Server
+PORT = 8080
+myHandler = Handler
+
 
 try:
     signal(SIGTERM, safe_exit)
     signal(SIGHUP, safe_exit)
 
     # boton_parar.when_pressed = stop
-    # if boton_activar.is_pressed and not main_process.is_alive() and not blocking:
+    # if boton_activar.is_pressed and not main_process.is_alive() and not running:
     #    main_process.start()
 
     with socketserver.TCPServer(("", PORT), myHandler) as httpd:
         print("serving at port", PORT)
         httpd.serve_forever()
-
-except KeyboardInterrupt:
-    if main_process.is_alive():
-        main_process.join(2)
 
 finally:
     stop()
