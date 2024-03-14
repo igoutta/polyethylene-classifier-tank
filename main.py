@@ -1,66 +1,58 @@
-#!/usr/bin/python3
-
 from signal import signal, SIGTERM, SIGHUP, pause
-from gpiozero import (
-    Button,
-    LED,
-    Servo,
-    PhaseEnableMotor,
-)
+from gpiozero import Button, LED, Servo, PhaseEnableMotor
+from gpiozero.pins.pigpio import PiGPIOFactory
 from time import monotonic, sleep
 import multiprocessing
 import sys
 
+from keyboard import is_pressed
+
 
 def main():
-    bomba_llenado.on()  # Activar la bomba para cumplir la condición
-    servo_sapo.value = CERRADO  # Cerrar para cumplir condición
-    servo_tunel.value = CERRADO  # Cerrar para cumplir condición
-    custom_sleep(1)
-    sensor_limite.wait_for_press()  # Condición necesaria para desfogar
-    # Limpieza
-    bomba_llenado.off()  # Apagar para no desbordar
-    bomba_corriente.on()  # Prender para circular el agua
-    motor_nema.forward(speed=1)  # Limpiar
-    TIEMPO_LIMPIEZA_SEC = 120
-    custom_sleep(TIEMPO_LIMPIEZA_SEC)
-    motor_nema.stop()  # Apagar para desfogue
-    servo_sapo.value = ABIERTO
-    TIEMPO_DESFOGUE_SEC = 15
-    custom_sleep(TIEMPO_DESFOGUE_SEC)
-    servo_sapo.value = CERRADO
-    TIEMPO_FINAL_SEC = 10
-    custom_sleep(TIEMPO_FINAL_SEC)
-    servo_tunel.value = ABIERTO
-    custom_sleep(1)
-    # Parada total de desfogue
+    run = True
+    print("Activando bomba y cerrando valvulas de desfogue")
+    bomba_llenado.on()
+    servo_sapo.mid()
+    servo_tunel.mid()
+    print("Esperar que se llene el tanque para hacer separaración")
+    TIEMPO_LLENADO = 8
+    sensor_limite.wait_for_press(timeout=TIEMPO_LLENADO)
+    print("Inicia la clasificación")
     bomba_llenado.off()
-    bomba_corriente.off()
+    bomba_corriente.on()
+    motor_nema.forward(speed=1)
+    TIEMPO_LIMPIEZA_SEC = 120
+    sleep(TIEMPO_LIMPIEZA_SEC)
+    print("Inicia el desfogue por el tubo de escape")
     motor_nema.stop()
-    servo_sapo.value = CERRADO
-    sleep(2)
-    servo_tunel.value = CERRADO
-    sleep(0.02)
-
-
-def custom_sleep(tiempo: float):
-    tiempos["inicio"] = monotonic()
-    tiempos["fin"] = monotonic()
-    while not boton_parar.is_pressed and (
-        (tiempos["fin"] - tiempos["inicio"]) < tiempo
-    ):
-        tiempos["fin"] = monotonic()
+    servo_sapo.max()
+    TIEMPO_DESFOGUE_SEC = 15
+    sleep(TIEMPO_DESFOGUE_SEC)
+    print("Cierra el tubo de escape y apaga la corriente")
+    bomba_corriente.off()
+    servo_sapo.mid()
+    TIEMPO_FINAL_SEC = 20
+    sleep(TIEMPO_FINAL_SEC)
+    print("Limpia residuos del tubo")
+    servo_tunel.max()
+    sleep(1)
+    print("Termina el proceso")
+    servo_tunel.mid()
+    sleep(0.5)
+    run = False
 
 
 def stop():
-    main_process.kill()  # Mata el proceso main
+    print("Termina subidamente el subproceso principal")
+    main_process.kill()
+    print("Apaga todos los actuadores")
     bomba_llenado.off()
     bomba_corriente.off()
     motor_nema.stop()
-    servo_sapo.value = CERRADO
-    sleep(2)
-    servo_tunel.value = CERRADO
-    sleep(0.02)
+    servo_sapo.mid()
+    sleep(5)
+    servo_tunel.mid()
+    sleep(0.5)
 
 
 def safe_exit(signum, frame):
@@ -68,35 +60,36 @@ def safe_exit(signum, frame):
 
 
 # Declaración de pines
-INICIAR = "J8:38"
-PARAR = "J8:40"
-FIN_CARRERA = "J8:36"
-# GALGA_DATA = "J8:21"
-# GALGA_CLK = "J8:23"
-# LCD_SDA = "J8:3"
-# LCD_SCK = "J8:5"
+INICIAR = "J8:37"
+PARAR = "J8:35"
+FIN_CARRERA = "J8:19"
 RELE_LLENADO = "J8:7"
 RELE_CORRIENTE = "J8:11"
 NEMA_STEP = "J8:3"
 NEMA_DIR = "J8:5"
 # *PWM
-SAPO = "J8:32"
-TUNEL = "J8:33"
-CERRADO = -1
-ABIERTO = 1
+SAPO = "J8:33"
+TUNEL = "J8:32"
+
+# Declaración de pines
+factory = PiGPIOFactory()
 
 # Instanciación de variables
-boton_activar = Button(INICIAR)
-boton_parar = Button(PARAR)
-sensor_limite = Button(FIN_CARRERA)
-bomba_llenado = LED(RELE_LLENADO)
-bomba_corriente = LED(RELE_CORRIENTE)
-motor_nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP)
-servo_sapo = Servo(pin=SAPO, initial_value=CERRADO)
-servo_tunel = Servo(pin=TUNEL, initial_value=CERRADO)
+boton_activar = Button(pin=INICIAR, bounce_time=0.3, pin_factory=factory)
+boton_parar = Button(pin=PARAR, bounce_time=0.3, pin_factory=factory)
+sensor_limite = Button(
+    pin=FIN_CARRERA, pull_up=False, bounce_time=0.3, pin_factory=factory
+)
+
+servo_sapo = Servo(pin=SAPO, initial_value=0, pin_factory=factory)
+servo_tunel = Servo(pin=TUNEL, initial_value=0, pin_factory=factory)
+
+motor_nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP, pin_factory=factory)
+
+bomba_llenado = LED(pin=RELE_LLENADO, pin_factory=factory)
+bomba_corriente = LED(pin=RELE_CORRIENTE, pin_factory=factory)
 
 # Procesamiento
-tiempos = {"inicio": None, "fin": None}
 main_process = multiprocessing.Process(target=main)
 
 
@@ -104,8 +97,13 @@ try:
     signal(SIGTERM, safe_exit)
     signal(SIGHUP, safe_exit)
 
-    boton_activar.when_pressed = main_process.start
     boton_parar.when_pressed = stop
+    if (
+        boton_activar.is_pressed
+        and not main_process.is_alive
+        and not boton_parar.is_pressed
+    ):
+        main_process.start()
 
     pause()
 
@@ -113,14 +111,21 @@ except KeyboardInterrupt:
     pass
 
 finally:
+    print("\nTermina la secuencia del proceso sí esta corriendo")
     if main_process.is_alive:
         main_process.terminate()
     main_process.close()
+    print("Finaliza todas las conexiones")
     bomba_llenado.off()
     bomba_corriente.off()
     bomba_llenado.close()
     bomba_corriente.close()
     motor_nema.stop()
     motor_nema.close()
+    servo_sapo.mid()
+    servo_tunel.mid()
     servo_sapo.close()
     servo_tunel.close()
+    sensor_limite.close()
+    boton_parar.close()
+    boton_activar.close()
