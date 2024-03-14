@@ -1,13 +1,11 @@
 from signal import signal, SIGTERM, SIGHUP, pause
 from gpiozero import Button, LED, Servo, AngularServo, PhaseEnableMotor
-from gpiozero.pins.pigpio import PiGPIOFactory
 from time import sleep
 from multiprocessing import Process
 import sys
 
 
 def main():
-    run = True
     print("Activando bomba y cerrando valvulas de desfogue")
     bomba_llenado.on()
     servo_sapo.mid()
@@ -37,7 +35,6 @@ def main():
     print("Termina el proceso")
     servo_tunel.mid()
     sleep(0.5)
-    run = False
 
 
 def stop():
@@ -66,26 +63,21 @@ RELE_CORRIENTE = "J8:11"
 NEMA_STEP = "J8:3"
 NEMA_DIR = "J8:5"
 # *PWM
-SAPO = "J8:32"
-TUNEL = "J8:33"
-
-# Declaración de pines
-factory = PiGPIOFactory()
+SAPO = "J8:33"
+TUNEL = "J8:32"
 
 # Instanciación de variables
-boton_activar = Button(pin=INICIAR, bounce_time=0.3, pin_factory=factory)
-boton_parar = Button(pin=PARAR, bounce_time=0.3, pin_factory=factory)
-sensor_limite = Button(
-    pin=FIN_CARRERA, pull_up=False, bounce_time=0.3, pin_factory=factory
-)
+boton_activar = Button(pin=INICIAR, bounce_time=0.3)
+boton_parar = Button(pin=PARAR, bounce_time=0.3)
+sensor_limite = Button(pin=FIN_CARRERA, pull_up=False, bounce_time=0.3)
 
-servo_sapo = AngularServo(pin=SAPO, pin_factory=factory)
-servo_tunel = Servo(pin=TUNEL, initial_value=0, pin_factory=factory)
+servo_sapo = AngularServo(pin=SAPO, initial_angle=0)
+servo_tunel = Servo(pin=TUNEL, initial_value=0)
 
-motor_nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP, pin_factory=factory)
+motor_nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP)
 
-bomba_llenado = LED(pin=RELE_LLENADO, pin_factory=factory)
-bomba_corriente = LED(pin=RELE_CORRIENTE, pin_factory=factory)
+bomba_llenado = LED(pin=RELE_LLENADO)
+bomba_corriente = LED(pin=RELE_CORRIENTE)
 
 # Procesamiento
 main_process: Process = Process(target=main, name="Principal")
