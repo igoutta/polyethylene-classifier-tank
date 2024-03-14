@@ -8,7 +8,7 @@ nema = PhaseEnableMotor(phase=NEMA_DIR, enable=NEMA_STEP)
 
 try:
     while True:
-        nema.forward(speed=0.9)  # ni 0.999 ni 0.95 ni 1
+        nema.forward(speed=0.95)  # ni 0.999 ni 0.95 ni 1
         sleep(45)
         nema.reverse()
         sleep(45)

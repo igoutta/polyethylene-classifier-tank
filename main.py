@@ -15,11 +15,12 @@ def main():
     print("Inicia la clasificación")
     bomba_llenado.off()
     bomba_corriente.on()
-    motor_nema.forward(speed=0.9)  # 0.9 es lo óptimo
+    motor_nema.forward(speed=0.95)  # 0.9 es lo óptimo
     TIEMPO_LIMPIEZA_SEC = 60
     sleep(TIEMPO_LIMPIEZA_SEC)
     print("Inicia el desfogue por el tubo de escape")
     motor_nema.stop()
+    sleep(1)
     servo_sapo.max()
     TIEMPO_DESFOGUE_SEC = 15
     sleep(TIEMPO_DESFOGUE_SEC)
