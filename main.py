@@ -5,8 +5,6 @@ from time import monotonic, sleep
 import multiprocessing
 import sys
 
-from keyboard import is_pressed
-
 
 def main():
     run = True
@@ -99,7 +97,7 @@ try:
 
     boton_parar.when_pressed = stop
     if (
-        boton_activar.is_pressed
+        boton_activar.is_pres
         and not main_process.is_alive
         and not boton_parar.is_pressed
     ):
