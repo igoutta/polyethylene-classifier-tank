@@ -1,8 +1,8 @@
 from signal import signal, SIGTERM, SIGHUP, pause
 from gpiozero import Button, LED, Servo, PhaseEnableMotor
 from gpiozero.pins.pigpio import PiGPIOFactory
-from time import monotonic, sleep
-import multiprocessing
+from time import sleep
+from multiprocessing import Process
 import sys
 
 
@@ -88,7 +88,7 @@ bomba_llenado = LED(pin=RELE_LLENADO, pin_factory=factory)
 bomba_corriente = LED(pin=RELE_CORRIENTE, pin_factory=factory)
 
 # Procesamiento
-main_process = multiprocessing.Process(target=main)
+main_process: Process = Process(target=main, name="Principal")
 
 
 try:
@@ -97,8 +97,8 @@ try:
 
     boton_parar.when_pressed = stop
     if (
-        boton_activar.is_pres
-        and not main_process.is_alive
+        boton_activar.is_pressed
+        and not main_process.is_alive()
         and not boton_parar.is_pressed
     ):
         main_process.start()
@@ -110,7 +110,7 @@ except KeyboardInterrupt:
 
 finally:
     print("\nTermina la secuencia del proceso sí esta corriendo")
-    if main_process.is_alive:
+    if main_process.is_alive():
         main_process.terminate()
     main_process.close()
     print("Finaliza todas las conexiones")
