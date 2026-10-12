@@ -15,13 +15,13 @@ dependencies = [
 pi = ["lgpio>=0.2"]
 # Servicio aparte de la balanza (polyethylene_tank.scale)
 scale = [
-    "hx711-rpi-py==1.65.0",
     "RPLCD==1.3.1",
     "smbus2==0.4.3",
 ]
 
 [project.scripts]
 tank-server = "polyethylene_tank.__main__:main"
+tank-scale = "polyethylene_tank.scale:main"
 
 [dependency-groups]
 dev = [

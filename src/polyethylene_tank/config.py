@@ -22,6 +22,11 @@ TIEMPO_LLENADO_SEC = 15
 TIEMPO_LIMPIEZA_SEC = 60
 TIEMPO_DESFOGUE_SEC = 15
 
+# Balanza HX711 (pines BCM, no la numeración J8) y calibración
+SCALE_DATA = 9  # pin físico 21
+SCALE_CLOCK = 11  # pin físico 23
+SCALE_REFERENCE_UNIT = -7627  # cuentas por unidad de peso
+
 # Servidor web
 HOST = "0.0.0.0"
 PORT = 8080
