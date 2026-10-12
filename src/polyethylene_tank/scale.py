@@ -11,6 +11,7 @@ from HX711 import AdvancedHX711, Options, Rate, ReadType
 from RPLCD.i2c import CharLCD
 
 from .config import LOG_FORMAT, SCALE_CLOCK, SCALE_DATA, SCALE_REFERENCE_UNIT
+from .weight import publicar
 
 log = logging.getLogger(__name__)
 
@@ -23,6 +24,14 @@ def _mostrar(lcd, peso):
     # Se sobrescribe la segunda línea en vez de limpiar: la pantalla no parpadea
     lcd.cursor_pos = (1, 0)
     lcd.write_string(f"{peso:>{LCD_COLUMNS}.1f}")
+
+
+def _publicar(peso):
+    # El panel web es secundario: si falla, la balanza sigue mostrando el peso
+    try:
+        publicar(peso)
+    except OSError as exc:
+        log.warning("No se pudo publicar el peso para el panel: %s", exc)
 
 
 def _medir(seconds):
@@ -55,6 +64,7 @@ def main():
                 peso = float(hx.weight(_medir(READ_SECONDS)))
                 log.debug("Peso: %.1f", peso)
                 _mostrar(lcd, peso)
+                _publicar(peso)
     except KeyboardInterrupt:
         log.info("Balanza detenida")
     finally:

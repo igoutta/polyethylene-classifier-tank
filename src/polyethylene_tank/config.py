@@ -1,6 +1,7 @@
 """Pines (numeración J8 de gpiozero), tiempos del ciclo y rutas de estado."""
 
 import os
+import tempfile
 from pathlib import Path
 
 # Entradas. Los botones van entre el pin y GND (pull-up interno)
@@ -36,6 +37,17 @@ STATE_DIR = Path(
     )
 )
 TIEMPOS_FILE = STATE_DIR / "tiempos.json"
+
+# Último peso de la balanza: en memoria (/dev/shm) para no gastar la tarjeta SD
+_RAM = Path("/dev/shm")
+LIVE_DIR = Path(
+    os.environ.get(
+        "TANK_LIVE_DIR",
+        (_RAM if _RAM.is_dir() else Path(tempfile.gettempdir())) / "polyethylene-tank",
+    )
+)
+PESO_FILE = LIVE_DIR / "peso.json"
+PESO_MAX_EDAD_SEC = 5  # más viejo que esto: la balanza no está funcionando
 
 # Balanza HX711 (pines BCM, no la numeración J8) y calibración
 SCALE_DATA = 9  # pin físico 21

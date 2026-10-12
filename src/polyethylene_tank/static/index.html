@@ -35,6 +35,7 @@
    <div class="info">
       Ciclos completados: <strong id="ciclos">0</strong>
       <span id="ultimo"></span>
+      <div>Balanza: <strong id="peso">sin datos</strong></div>
    </div>
 
    <details>
@@ -63,6 +64,7 @@
          $("ultimo").textContent = s.ultimo_ciclo
             ? "· último a las " + new Date(s.ultimo_ciclo).toLocaleTimeString()
             : "";
+         $("peso").textContent = s.peso === null ? "sin datos" : s.peso.toFixed(1) + " g";
       }
 
       async function call(path, method) {

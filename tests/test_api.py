@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 
 from polyethylene_tank.app import app
 from polyethylene_tank.config import TIEMPOS_FILE
+from polyethylene_tank.weight import publicar
 
 
 @pytest.fixture
@@ -19,6 +20,7 @@ def test_starts_stopped(client):
         "error": None,
         "ciclos": 0,
         "ultimo_ciclo": None,
+        "peso": None,
     }
 
 
@@ -83,3 +85,8 @@ def test_invalid_timings_are_rejected(client, llenado):
     )
     assert response.status_code == 422
     assert not TIEMPOS_FILE.exists()
+
+
+def test_status_shows_the_scale_weight(client):
+    publicar(123.4)
+    assert client.get("/api/status").json()["peso"] == 123.4

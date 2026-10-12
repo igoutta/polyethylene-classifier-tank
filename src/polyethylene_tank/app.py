@@ -20,6 +20,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from .config import TIEMPOS_FILE
 from .settings import Tiempos, cargar, guardar
 from .tank import Tank
+from .weight import leer as leer_peso
 
 STATIC = Path(__file__).parent / "static"
 REALM = "Tanque clasificador"
@@ -76,6 +77,7 @@ def estado(tank: Tank):
         "error": tank.error,
         "ciclos": tank.ciclos,
         "ultimo_ciclo": ultimo.isoformat(timespec="seconds") if ultimo else None,
+        "peso": leer_peso(),
     }
 
 
