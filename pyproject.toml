@@ -29,7 +29,8 @@ tank-scale = "polyethylene_tank.scale:main"
 
 [dependency-groups]
 dev = [
-    "httpx>=0.27",
+    "complexipy>=8.0.1",
+    "httpx2>=2.13.1",
     "pytest>=8",
     "ruff>=0.17.0",
     "ty>=0.0.86",
@@ -75,6 +76,11 @@ max-args = 5
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["PLR2004"]  # números mágicos en asserts
 "tools/*" = ["PLR2004"]  # scripts de banco con tiempos fijos
+
+[tool.complexipy]
+# Complejidad cognitiva (la de SonarQube): Sonar avisa desde 15, aquí 8
+paths = ["src", "tools", "tests"]
+max-complexity-allowed = 8
 
 [tool.ty.environment]
 python-version = "3.11"
