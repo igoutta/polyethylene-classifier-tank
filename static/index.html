@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+   <meta charset="utf-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1">
+   <title>Tanque clasificador</title>
+   <style>
+      body { font-family: system-ui, sans-serif; max-width: 28rem; margin: 2rem auto; padding: 0 1rem; text-align: center; }
+      #estado { font-size: 1.5rem; font-weight: 700; margin: 0.25rem 0; }
+      #paso { color: #555; min-height: 1.5em; }
+      .on { color: #1a7f37; }
+      .off { color: #b42318; }
+      button { width: 100%; padding: 1.25rem; margin-top: 1rem; font-size: 1.25rem; border: 0; border-radius: 0.5rem; color: #fff; cursor: pointer; }
+      button:disabled { opacity: 0.4; cursor: not-allowed; }
+      #start { background: #1a7f37; }
+      #stop { background: #b42318; }
+   </style>
+</head>
+<body>
+   <h1>Tanque clasificador</h1>
+   <div id="estado" class="off">…</div>
+   <div id="paso"></div>
+   <button id="start">COMENZAR</button>
+   <button id="stop">PARAR</button>
+
+   <script>
+      const $ = (id) => document.getElementById(id);
+
+      function render(s) {
+         $("estado").textContent = s.running ? "EN EJECUCIÓN" : "DETENIDO";
+         $("estado").className = s.running ? "on" : "off";
+         $("paso").textContent = s.step;
+         $("start").disabled = s.running;
+      }
+
+      async function call(path, method) {
+         try {
+            const r = await fetch(path, { method });
+            render(await r.json());
+         } catch (e) {
+            $("estado").textContent = "SIN CONEXIÓN";
+            $("estado").className = "off";
+         }
+      }
+
+      $("start").onclick = () => call("/api/start", "POST");
+      $("stop").onclick = async () => {
+         $("stop").disabled = true; // detener tarda unos segundos
+         await call("/api/stop", "POST");
+         $("stop").disabled = false;
+      };
+
+      call("/api/status", "GET");
+      setInterval(() => call("/api/status", "GET"), 1000);
+   </script>
+</body>
+</html>

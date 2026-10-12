@@ -68,7 +68,7 @@ After=syslog.target
 Type=simple
 User=ga
 WorkingDirectory=/home/ga/polyethylene-classifier-tank
-ExecStart=/usr/bin/python3 -u main.py
+ExecStart=/home/ga/.local/bin/uv run --extra pi uvicorn main:app --host 0.0.0.0 --port 8080
 StandardOutput=syslog
 StandardError=syslog
 Restart=always
@@ -89,7 +89,7 @@ After=syslog.target
 Type=simple
 User=ga
 WorkingDirectory=/home/ga/polyethylene-classifier-tank
-ExecStart=/home/ga/polyethylene-classifier-tank/env/bin/python -u scale.py
+ExecStart=/home/ga/.local/bin/uv run --extra scale python -u scale.py
 StandardOutput=syslog
 StandardError=syslog
 Restart=always
@@ -119,16 +119,20 @@ Once you’ve opened the Raspberry Pi Configuration tool, go to the Interfacing 
 
 `i2cdetect -y 1`
 
-### Ambiente virtual
+### Ambiente y dependencias con uv
 
-Dentro de la raíz del repositorio, para crear el entorno virtual: `python3 -m venv env`
-Por si acaso no se hace de antemano, ignorar el hecho de guardar el ambiente virtual con: `echo ‘env' > .gitignore`
-Para activarlo: `source env/bin/activate` y para desactivarlo: `deactivate`
-Para guardar las bibliotecas usar: `pip freeze > requirements.txt` y para instalarlas: `pip install -r requeriments.txt`
+Instalar uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 
-### Librerias o Bibliotecas
+Las dependencias están en `pyproject.toml` (y `uv.lock`):
 
-`pip3 install RPLCD smbus2`
+- `uv sync --extra pi` : controlador del tanque (FastAPI + gpiozero + lgpio)
+- `uv sync --extra pi --extra scale` : además la balanza (HX711, LCD)
+
+Ejecutar el panel web (un solo worker, el hardware es único): `uv run --extra pi uvicorn main:app --host 0.0.0.0 --port 8080`
+
+Desarrollo sin Raspberry Pi (pines simulados): `GPIOZERO_PIN_FACTORY=mock GPIOZERO_MOCK_PIN_CLASS=mockpwmpin uv run uvicorn main:app`
+
+La API: `GET /api/status`, `POST /api/start`, `POST /api/stop`. El panel está en `static/index.html`.
 
 ### [HX711](https://github.com/endail/hx711-rpi-py)
 
