@@ -1,8 +1,9 @@
 """Pines (numeración J8 de gpiozero) y tiempos del ciclo."""
 
-# Entradas
+# Entradas. Los botones van entre el pin y GND (pull-up interno)
 INICIAR = "J8:37"
-PARAR = "J8:35"
+PARAR = "J8:35"  # parada de emergencia física: no depende del panel
+BOTONES_BOUNCE_SEC = 0.05
 FIN_CARRERA = "J8:19"
 # gpiozero mide el antirrebote en segundos: antes había 5 (cinco segundos)
 FIN_CARRERA_BOUNCE_SEC = 0.005

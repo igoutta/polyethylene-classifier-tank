@@ -8,6 +8,7 @@ from time import monotonic, sleep
 from gpiozero import LED, AngularServo, Button, PhaseEnableMotor, Servo
 
 from .config import (
+    BOTONES_BOUNCE_SEC,
     FIN_CARRERA,
     FIN_CARRERA_BOUNCE_SEC,
     INICIAR,
@@ -34,8 +35,8 @@ class FalloDeLlenado(RuntimeError):
 
 class Tank:
     def __init__(self, tiempos=None):
-        self.boton_activar = Button(pin=INICIAR)
-        self.boton_parar = Button(pin=PARAR)
+        self.boton_activar = Button(pin=INICIAR, bounce_time=BOTONES_BOUNCE_SEC)
+        self.boton_parar = Button(pin=PARAR, bounce_time=BOTONES_BOUNCE_SEC)
         self.sensor_limite = Button(
             pin=FIN_CARRERA, pull_up=False, bounce_time=FIN_CARRERA_BOUNCE_SEC
         )
@@ -56,6 +57,9 @@ class Tank:
         self._thread = None
         self._stop_event = Event()
         self._lock = Lock()
+
+        self.boton_activar.when_pressed = self._iniciar_desde_boton
+        self.boton_parar.when_pressed = self._parar_desde_boton
 
     @property
     def running(self):
@@ -80,6 +84,15 @@ class Tank:
             self.step = "Deteniendo"
             self._apagar_actuadores()
             self.step = "Detenido"
+
+    def _iniciar_desde_boton(self):
+        log.info("Botón INICIAR presionado")
+        self.start()
+
+    def _parar_desde_boton(self):
+        log.warning("Botón PARAR presionado")
+        # stop() tarda unos segundos (servos): no bloquear el hilo de gpiozero
+        Thread(target=self.stop, name="Parar", daemon=True).start()
 
     def close(self):
         try:

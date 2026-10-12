@@ -12,8 +12,10 @@ def tank(monkeypatch):
     monkeypatch.setattr(tank_module, "PAUSA_MOTOR_SEC", 0.01)
     tank = Tank(tiempos=Tiempos(llenado=0.2, limpieza=0.2, desfogue=0.2))
     yield tank
-    # Con el sensor activo, gpiozero tarda ~1 s en cerrar el Button
+    # Con un Button activo gpiozero tarda ~1 s en cerrarlo: soltar todos
     tank.sensor_limite.pin.drive_low()
+    for boton in (tank.boton_activar, tank.boton_parar):
+        boton.pin.drive_high()
     tank.close()
 
 
@@ -87,3 +89,24 @@ def test_start_clears_previous_error(tank):
     tanque_lleno(tank)
     tank.start()
     assert tank.error is None
+
+
+def presionar(button):
+    button.pin.drive_low()  # botón a GND con pull-up
+    time.sleep(0.06)  # más que el antirrebote
+    button.pin.drive_high()
+
+
+def test_start_button_starts_the_cycle(tank):
+    presionar(tank.boton_activar)
+    assert esperar(lambda: tank.running)
+
+
+def test_stop_button_stops_everything(tank):
+    tanque_lleno(tank)
+    tank.tiempos = Tiempos(llenado=0.2, limpieza=30, desfogue=0.2)
+    tank.start()
+    assert esperar(lambda: tank.step == "Clasificando")
+    presionar(tank.boton_parar)
+    assert esperar(lambda: not tank.running and tank.step == "Detenido")
+    assert bombas_apagadas(tank)
