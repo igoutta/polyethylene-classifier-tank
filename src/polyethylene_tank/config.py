@@ -4,6 +4,8 @@
 INICIAR = "J8:37"
 PARAR = "J8:35"
 FIN_CARRERA = "J8:19"
+# gpiozero mide el antirrebote en segundos: antes había 5 (cinco segundos)
+FIN_CARRERA_BOUNCE_SEC = 0.005
 
 # Relés de las bombas
 RELE_LLENADO = "J8:7"

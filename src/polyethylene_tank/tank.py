@@ -9,6 +9,7 @@ from gpiozero import LED, AngularServo, Button, PhaseEnableMotor, Servo
 
 from .config import (
     FIN_CARRERA,
+    FIN_CARRERA_BOUNCE_SEC,
     INICIAR,
     NEMA_DIR,
     NEMA_STEP,
@@ -30,7 +31,9 @@ class Tank:
     def __init__(self):
         self.boton_activar = Button(pin=INICIAR)
         self.boton_parar = Button(pin=PARAR)
-        self.sensor_limite = Button(pin=FIN_CARRERA, pull_up=False, bounce_time=5)
+        self.sensor_limite = Button(
+            pin=FIN_CARRERA, pull_up=False, bounce_time=FIN_CARRERA_BOUNCE_SEC
+        )
 
         self.servo_sapo = AngularServo(pin=SAPO, initial_angle=0)
         self.servo_sapo.detach()
