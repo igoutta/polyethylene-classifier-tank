@@ -12,8 +12,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Solo en la Raspberry Pi (backend de GPIO)
-pi = ["lgpio>=0.2"]
+# Solo en la Raspberry Pi: backends de GPIO. lgpio por defecto; pigpio (Pi 4
+# o anterior) da PWM por hardware a los servos con GPIOZERO_PIN_FACTORY=pigpio
+pi = ["lgpio>=0.2", "pigpio>=1.78"]
 # Servicio aparte de la balanza (polyethylene_tank.scale)
 scale = [
     # Compila contra libhx711: instalarla antes con scripts/install-hx711.sh
