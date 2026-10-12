@@ -60,19 +60,9 @@ class Tank:
     def stop(self):
         with self._lock:
             self._stop_event.set()
-            if self._thread is not None:
-                print("Termina el hilo principal")
-                self._thread.join()
-                self._thread = None
-            print("Apaga todos los actuadores")
+            self._join_cycle()
             self.step = "Deteniendo"
-            self.bomba_llenado.off()
-            self.bomba_corriente.off()
-            self.motor_nema.stop()
-            self.servo_sapo.min()
-            sleep(2)
-            self.servo_sapo.detach()
-            self._limpiar_tubo()
+            self._apagar_actuadores()
             self.step = "Detenido"
 
     def close(self):
@@ -92,6 +82,23 @@ class Tank:
             ):
                 device.close()
 
+    def _join_cycle(self):
+        if self._thread is None:
+            return
+        print("Termina el hilo principal")
+        self._thread.join()
+        self._thread = None
+
+    def _apagar_actuadores(self):
+        print("Apaga todos los actuadores")
+        self.bomba_llenado.off()
+        self.bomba_corriente.off()
+        self.motor_nema.stop()
+        self.servo_sapo.min()
+        sleep(2)
+        self.servo_sapo.detach()
+        self._limpiar_tubo()
+
     def _wait(self, seconds):
         """Espera interrumpible: devuelve True si se pidió parar."""
         return self._stop_event.wait(seconds)
@@ -104,43 +111,49 @@ class Tank:
         self.servo_tunel.detach()  # Para asegurar que este apagado
 
     def _cycle(self):
-        # El ciclo se repite hasta que se pida parar
+        """Repite las etapas hasta que se pida parar."""
+        etapas = (self._llenar, self._clasificar, self._desfogar, self._cerrar)
         while not self._stop_event.is_set():
-            self.step = "Llenando el tanque"
-            print("Activando bomba y cerrando valvulas de desfogue")
-            self.bomba_llenado.on()
-            lleno = False
-            for _ in range(TIEMPO_LLENADO_SEC * 10):
-                if self.sensor_limite.is_pressed:
-                    lleno = True
-                    break
-                if self._wait(0.1):
-                    return
-            if not lleno:
-                print("AVISO: el sensor no detectó el tanque lleno a tiempo")
-
-            self.step = "Clasificando"
-            print("Inicia la clasificación")
-            self.bomba_llenado.off()
-            self.bomba_corriente.on()
-            self.motor_nema.forward(speed=0.95)  # 0.9 es lo óptimo
-            if self._wait(TIEMPO_LIMPIEZA_SEC):
+            # Cada etapa devuelve False si se pidió parar durante su espera
+            if not all(etapa() for etapa in etapas):
                 return
-
-            self.step = "Desfogando"
-            print("Inicia el desfogue por el tubo de escape")
-            self.motor_nema.stop()
-            if self._wait(2):
-                return
-            self.servo_sapo.max()
-            if self._wait(TIEMPO_DESFOGUE_SEC):
-                return
-
-            self.step = "Limpiando el tubo"
-            print("Cierra el tubo de escape y apaga la corriente")
-            self.bomba_corriente.off()
-            self.servo_sapo.min()
-            sleep(1)
-            self.servo_sapo.detach()
-            self._limpiar_tubo()
             print("Termina el ciclo")
+
+    def _llenar(self):
+        self.step = "Llenando el tanque"
+        print("Activando bomba y cerrando valvulas de desfogue")
+        self.bomba_llenado.on()
+        for _ in range(TIEMPO_LLENADO_SEC * 10):
+            if self.sensor_limite.is_active:
+                return True
+            if self._wait(0.1):
+                return False
+        print("AVISO: el sensor no detectó el tanque lleno a tiempo")
+        return True
+
+    def _clasificar(self):
+        self.step = "Clasificando"
+        print("Inicia la clasificación")
+        self.bomba_llenado.off()
+        self.bomba_corriente.on()
+        self.motor_nema.forward(speed=0.95)  # 0.9 es lo óptimo
+        return not self._wait(TIEMPO_LIMPIEZA_SEC)
+
+    def _desfogar(self):
+        self.step = "Desfogando"
+        print("Inicia el desfogue por el tubo de escape")
+        self.motor_nema.stop()
+        if self._wait(2):
+            return False
+        self.servo_sapo.max()
+        return not self._wait(TIEMPO_DESFOGUE_SEC)
+
+    def _cerrar(self):
+        self.step = "Limpiando el tubo"
+        print("Cierra el tubo de escape y apaga la corriente")
+        self.bomba_corriente.off()
+        self.servo_sapo.min()
+        sleep(1)
+        self.servo_sapo.detach()
+        self._limpiar_tubo()
+        return True
