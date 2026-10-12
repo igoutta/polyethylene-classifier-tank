@@ -45,6 +45,40 @@ journalctl -u polyethylene-classifier-tank -f   # ver el registro
 
 Los servicios asumen el usuario `ga`, el repositorio en `/home/ga/polyethylene-classifier-tank` y uv en `/home/ga/.local/bin/uv`; ajustar en los `.service` si es distinto.
 
+## Contraseña del panel
+
+Sin contraseña, cualquiera en la red puede encender las bombas. El servicio lee `/etc/polyethylene-tank.env` si existe:
+
+```sh
+sudo install -m 600 deploy/polyethylene-tank.env.example /etc/polyethylene-tank.env
+sudo nano /etc/polyethylene-tank.env          # cambiar TANK_PASSWORD (y TANK_USER)
+sudo systemctl restart polyethylene-classifier-tank
+```
+
+El navegador pedirá usuario y contraseña al abrir el panel. Si `TANK_PASSWORD` no está definida, el registro muestra un aviso al arrancar.
+
+## Servos sin vibración: pigpio (opcional)
+
+Con el backend por defecto (lgpio) el PWM de los servos es por software y puede vibrar. En la Pi 4, pigpio genera el PWM por hardware (DMA). No funciona en la Pi 5.
+
+```sh
+sudo apt install -y pigpio
+sudo systemctl daemon-reload
+sudo systemctl enable --now pigpiod
+systemctl status pigpiod                       # debe estar "active (running)"
+```
+
+Luego descomentar `GPIOZERO_PIN_FACTORY=pigpio` en `/etc/polyethylene-tank.env` y reiniciar el servicio del tanque. Para volver a lgpio, comentar la línea. *(Por verificar en la Pi: que los servos dejen de vibrar.)*
+
+## Archivos que escribe
+
+| Qué | Dónde | Variable para cambiarlo |
+|---|---|---|
+| Tiempos fijados desde el panel | `~/.local/state/polyethylene-tank/tiempos.json` | `TANK_STATE_DIR` |
+| Último peso de la balanza | `/dev/shm/polyethylene-tank/peso.json` (en RAM) | `TANK_LIVE_DIR` |
+
+Para volver a los tiempos de `config.py`, borrar `tiempos.json` y reiniciar el servicio.
+
 ## Siguientes pasos
 
 - Pines, conexiones y calibración de la balanza: [hardware.md](hardware.md)

@@ -13,10 +13,11 @@ Los pines se nombran en la numeración física de la Raspberry Pi (`J8:<n>`, de 
 | Motor NEMA, *phase* (dirección) | `J8:5` | 3 | Salida | Ver advertencia de I2C |
 | Servo `sapo` (desfogue) | `J8:33` | 13 | PWM | Abre/cierra el tubo de escape |
 | Servo `túnel` (limpieza del tubo) | `J8:32` | 12 | PWM | Barre el tubo con tiempos fijos |
-| Botón iniciar | `J8:37` | 26 | Entrada | Sin uso: lo reemplaza el panel web |
-| Botón parar | `J8:35` | 19 | Entrada | Sin uso: lo reemplaza el panel web |
+| Botón iniciar | `J8:37` | 26 | Entrada | Entre el pin y GND (pull-up interno) |
+| Botón parar | `J8:35` | 19 | Entrada | Parada de emergencia; entre el pin y GND |
 
-Los botones físicos se siguen inicializando en `tank.py`, pero ninguna acción está conectada a ellos.
+- **Fin de carrera:** antirrebote de 5 ms (`FIN_CARRERA_BOUNCE_SEC`). Antes era `5`, que gpiozero interpreta como cinco **segundos**.
+- **Botones:** antirrebote de 50 ms. PARAR corta bombas y motor al instante y no depende del panel ni de la red. Si un botón no está conectado, el pull-up interno lo deja en reposo y no hace nada.
 
 ### Advertencia: I2C y el motor NEMA
 
@@ -27,7 +28,7 @@ Los botones físicos se siguen inicializando en `tank.py`, pero ninguna acción 
 - El `sapo` es un servo de posición: `max()` abre el tubo de escape y `min()` lo cierra.
 - El `túnel` parece de rotación continua *(inferido, por verificar)*: el código hace `min()` 1,7 s y `max()` 0,95 s con esperas fijas para barrer el tubo (`Tank._limpiar_tubo`), lo que solo tiene sentido si el servo gira según el tiempo y no según una posición.
 - Se llama a `detach()` después de mover cada servo para que dejen de recibir señal PWM y no vibren ni se muevan solos.
-- El PWM es por software con el backend por defecto de gpiozero y puede vibrar. `J8:32` y `J8:33` (GPIO 12 y 13) son pines de PWM por hardware: usar PWM por hardware sería la mejora si hace falta (ver [troubleshooting.md](troubleshooting.md)).
+- El PWM es por software con el backend por defecto de gpiozero (lgpio) y puede vibrar. En la Pi 4 se puede usar pigpio, con PWM temporizado por hardware, sin cambiar el código: ver [setup.md](setup.md#servos-sin-vibración-pigpio-opcional).
 
 ## Balanza
 
