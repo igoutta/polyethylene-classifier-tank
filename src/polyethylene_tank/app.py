@@ -27,7 +27,7 @@ app = FastAPI(title="Tanque clasificador de polietileno", lifespan=lifespan)
 
 
 def estado(tank: Tank):
-    return {"running": tank.running, "step": tank.step}
+    return {"running": tank.running, "step": tank.step, "error": tank.error}
 
 
 # Los endpoints son sync a propósito: FastAPI los ejecuta en un hilo y

@@ -19,10 +19,11 @@ NEMA_DIR = "J8:5"
 SAPO = "J8:33"
 TUNEL = "J8:32"
 
-# Tiempos del ciclo (segundos)
-TIEMPO_LLENADO_SEC = 15
+# Tiempos del ciclo (segundos), valores por defecto
+TIEMPO_LLENADO_SEC = 15  # máximo: si el sensor no detecta el tanque lleno, error
 TIEMPO_LIMPIEZA_SEC = 60
 TIEMPO_DESFOGUE_SEC = 15
+TIEMPO_MAX_SEC = 600  # tope para cualquier tiempo, evita errores de tipeo
 
 # Balanza HX711 (pines BCM, no la numeración J8) y calibración
 SCALE_DATA = 9  # pin físico 21

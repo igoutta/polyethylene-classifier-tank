@@ -12,13 +12,19 @@ def client():
 
 
 def test_starts_stopped(client):
-    assert client.get("/api/status").json() == {"running": False, "step": "Detenido"}
+    assert client.get("/api/status").json() == {
+        "running": False,
+        "step": "Detenido",
+        "error": None,
+    }
 
 
 def test_start_then_stop(client):
     assert client.post("/api/start").json()["running"] is True
     assert client.get("/api/status").json()["step"] == "Llenando el tanque"
-    assert client.post("/api/stop").json() == {"running": False, "step": "Detenido"}
+    stopped = client.post("/api/stop").json()
+    assert stopped["running"] is False
+    assert stopped["step"] == "Detenido"
 
 
 def test_start_twice_is_safe(client):

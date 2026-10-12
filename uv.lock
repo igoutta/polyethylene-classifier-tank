@@ -217,6 +217,7 @@ source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
     { name = "gpiozero" },
+    { name = "pydantic" },
     { name = "uvicorn" },
 ]
 
@@ -244,6 +245,7 @@ requires-dist = [
     { name = "gpiozero", specifier = ">=2.0" },
     { name = "hx711-rpi-py", marker = "sys_platform == 'linux' and extra == 'scale'", specifier = ">=1.65.0" },
     { name = "lgpio", marker = "extra == 'pi'", specifier = ">=0.2" },
+    { name = "pydantic", specifier = ">=2" },
     { name = "rplcd", marker = "extra == 'scale'", specifier = ">=1.4.0" },
     { name = "smbus2", marker = "extra == 'scale'", specifier = ">=0.6.1" },
     { name = "uvicorn", specifier = ">=0.30" },
