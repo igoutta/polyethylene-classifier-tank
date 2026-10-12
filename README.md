@@ -1,149 +1,62 @@
-# Implementación del algoritmo para el uso del tanque con polyetileno
+# Tanque clasificador de polietileno
 
-## 1. Identificación del algoritmo
+Control de un tanque que separa polietileno del resto del material, en una Raspberry Pi. Un panel web inicia y detiene el ciclo, y un servicio aparte muestra el peso de una balanza (HX711) en una pantalla LCD.
 
-Para que un algoritmo escrito en Python en la Raspberry Pi funcione adecuadamente, es necesario indicar primeramente el ambiente en cual se ejecuta. En este caso, se utiliza *#!/usr/bin/python3*, que contiene el sitio por defecto donde se encuentra el ejecutor del algoritmo.
+## Estructura
 
-## 2. Importación de bibliotecas
-
-Las palabras reversadas *from* e *import* indican la importación de librerías/bibliotecas que contienen elementos necesarios para crear el algoritmo.
-
-Principalmente, se usa signal para mantener en bucle.
-
-## 3. Declaración de pines
-
-Con el fin de controlar y leer tanto actuadores como sensores, es necesario asignar el uso de los pines fisicos a nuestras variables según su uso. En este caso, la mayoría usa lógica binaria, es decir escoge entre dos valores, sean estos 1 o 0, True or False, 5V o 0V, equivalentes entre sí mas distintos según el marco en cuestión (matemático, computacional y eléctrico). El resto de pines a usar varia en un espectro limitado conocido como PWM, que para nuestra facilidad es cualquier valor real entre -1 y 1, que son parte de las condiciones iniciales.
-
-Los pines se nombran de varias formas, en nuestro caso se ha elegido la más fácil, que es la ascendente. Para esto se llama al pin con el prefijo "J8:*x*" donde *x* el numero del pin, que van del 1 al 40.
-
-## 4. Inicialización de variables
-
-Las variables que rigen el sistema algorítmico necesitan ser iniciadas y cargadas a la memoria de la computadora. A través de su nombramiento en Python, éstas se cargan durante la ejecución.
-
-Se pueden diferenciar tres grandes grupos: entradas, salidas y tiempos de ejecución.
-
-## 5. Declaración de funciones
-
-Fragmentar el algoritmo en partes que tienen una finalidad, ayuda a la legibilidad y facilita de mantenimiento de éste. En este caso, gracias a que la secuencia está bien delimitada y no existen condiciones de carrera, sólo son tres funciones: la principal, una auxiliar para crear retraso en el script, y la de parada.
-
-La función principal, llamada main se divide en tres grandes bloques de secuencias: preparación, desfogue y parada.
-
-- La fase de preparación se encarga de dos cosas: prender la bomba y esperar que el sensor de final de carrera detecte que la piscina está llena. Además, guarda el tiempo para usar en el desfogue.
-- La fase de desfogue es la que utiliza los motores para limpiar el tanque de los restos de polietilenos y se abre el tubo de escape de agua.
-- En la fase de parada el sistema apaga el motor de limpieza y cierra la piscina, tapando en tubo de escape y luego quitando los restos de dicho tubo.
-
-> wait_for_active() sirve para esperar indefinidamente que el sensor de fin de carrera se ponga en estado True.
-
-La función auxiliar custom_sleep sirve para esperar mientras se cumplan dos condiciones:
-
-1. Que el botón de parada no este presionado.
-2. Que el tiempo transcurrido (diferencia entre final e inicial) sea menor al tiempo que la persona para como paramétro de entrada.
-
-> monotonic() es un contador de tiempo que no retrocede y no se pueden parar mediante programación. Perfecto para este proyecto.
-
-La función de parada simplemente es una secuencia para finalizar el script
-
-## 6. Seguridad en la ejecución del algoritmo
-
-La función safe_exit, la creación de dos señales, son prácticas de seguridad a la hora de ejecutar el algoritmo. El primero simplemente ayuda a terminar el script con un aviso, por eso el valor 1. Este se lo asigna a dos señales.
-
-El bloque try, implementa la ejecución del código o que realizar si ocurre algún error o excepción. En nuestro caso, siempre que pase algo, se parar los actuadores y descarga las variables del pines, dejandolos libres.
-
-## 7. Lógica del algoritmo
-
-Basicamente consiste en asigna como evento las funciones segun el boton, la función main al boton de activar y la de stop al boton de parar. Esto crea un vinculo que sucede al presionar el boton, que da paso a ejecutar dicha orden.
-
-> pause() es el comando para mantener corriendo indefinidamente el algoritmo, mientras que deja activar los botones.
-
-## Auto Iniciar el script
-
-Crear un servicio con `sudo nano /etc/systemd/system/polyethylene-classifier-tank.service`
-
-```properties
-[Unit]
-Description=Polyethylene Classifier Tank Service
-After=syslog.target
-
-[Service]
-Type=simple
-User=ga
-WorkingDirectory=/home/ga/polyethylene-classifier-tank
-ExecStart=/home/ga/.local/bin/uv run --extra pi uvicorn main:app --host 0.0.0.0 --port 8080
-StandardOutput=syslog
-StandardError=syslog
-Restart=always
-TimeoutStartSec=10
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-
+```text
+src/polyethylene_tank/
+    config.py      pines, tiempos del ciclo y calibración de la balanza
+    tank.py        hardware y ciclo de limpieza (clase Tank)
+    app.py         API FastAPI + panel web
+    static/        página del panel (sin dependencias externas)
+    hx711.py       driver del HX711 sobre gpiozero/lgpio
+    scale.py       balanza con LCD I2C (servicio independiente)
+    __main__.py    arranque del servidor
+tests/             pruebas con pines simulados
+tools/             scripts de banco (servos, motor NEMA)
+firmware/          alternativa de la balanza en Arduino
+deploy/            servicios de systemd
+docs/              instalación, hardware, red y problemas frecuentes
 ```
 
-```properties
-[Unit]
-Description=Polyethylene Scale Service
-After=syslog.target
+## El ciclo
 
-[Service]
-Type=simple
-User=ga
-WorkingDirectory=/home/ga/polyethylene-classifier-tank
-ExecStart=/home/ga/.local/bin/uv run --extra scale python -u scale.py
-StandardOutput=syslog
-StandardError=syslog
-Restart=always
-TimeoutStartSec=10
-RestartSec=10
+Al presionar COMENZAR el ciclo se repite hasta presionar PARAR:
 
-[Install]
-WantedBy=multi-user.target
+1. **Llenado:** bomba de llenado encendida hasta que el final de carrera detecta el tanque lleno (máximo 15 s).
+2. **Clasificación:** bomba de corriente y motor NEMA durante 60 s.
+3. **Desfogue:** el motor se detiene y el servo `sapo` abre el tubo de escape 15 s.
+4. **Cierre y limpieza:** se cierra el tubo, se apaga la bomba y el servo `túnel` limpia los residuos.
 
-```
+PARAR interrumpe la etapa en curso, apaga las bombas y el motor y deja los servos en reposo.
 
-## Instalación de otras dependencias para I2C y HX711
+## Uso
 
-`sudo apt update` && `sudo apt upgrade`
-
-`sudo raspi-config`
-
-Once you’ve opened the Raspberry Pi Configuration tool, go to the Interfacing Options menu and choose I2C. Then, enable I2C by selecting ‘Yes’ and hitting Enter. Finally, exit the raspi-config tool by selecting ‘Finish.’
-
-`sudo reboot`
-
-`sudo apt install -y i2c-tools python3-smbus`
-
-`lsmod | grep i2c_`
-
-`sudo reboot`
-
-`i2cdetect -y 1`
-
-### Ambiente y dependencias con uv
-
-Instalar uv: `curl -LsSf https://astral.sh/uv/install.sh | sh`
-
-Las dependencias están en `pyproject.toml` (y `uv.lock`):
-
-- `uv sync --extra pi` : controlador del tanque (FastAPI + gpiozero + lgpio)
-- `uv sync --extra pi --extra scale` : además la balanza (HX711, LCD)
-
-Ejecutar el panel web (un solo worker, el hardware es único): `uv run --extra pi uvicorn main:app --host 0.0.0.0 --port 8080`
-
-Desarrollo sin Raspberry Pi (pines simulados): `GPIOZERO_PIN_FACTORY=mock GPIOZERO_MOCK_PIN_CLASS=mockpwmpin uv run uvicorn main:app`
-
-La API: `GET /api/status`, `POST /api/start`, `POST /api/stop`. El panel está en `static/index.html`.
-
-### [HX711](https://github.com/endail/hx711-rpi-py)
-
-`sudo apt install -y liblgpio-dev`
+Requiere [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/install.sh | sh`).
 
 ```sh
-cd $HOME && git clone --depth=1 https://github.com/endail/hx711
-cd hx711
-make |& tee build.log
-sudo make install
-sudo ldconfig
+uv run --extra pi tank-server            # panel en http://<ip-de-la-pi>:8080
+uv run --extra pi --extra scale tank-scale   # balanza con LCD
 ```
 
-`pip install --upgrade hx711-rpi-py`
+El servidor usa un solo proceso porque el hardware no se puede compartir. API: `GET /api/status`, `POST /api/start`, `POST /api/stop`.
+
+## Desarrollo (sin Raspberry Pi)
+
+```sh
+uv sync --extra scale
+GPIOZERO_PIN_FACTORY=mock GPIOZERO_MOCK_PIN_CLASS=mockpwmpin uv run tank-server
+
+uv run pytest          # pruebas
+uv run ruff check .    # lint (incluye complejidad ciclomática máxima de 6)
+uv run ruff format .
+uv run ty check        # tipos
+```
+
+## Documentación
+
+- [docs/setup.md](docs/setup.md): instalación en la Pi y servicios de systemd (`deploy/`)
+- [docs/hardware.md](docs/hardware.md): pines, conexiones y calibración de la balanza
+- [docs/network.md](docs/network.md): conectar la Pi a una red Wi-Fi
+- [docs/troubleshooting.md](docs/troubleshooting.md): problemas frecuentes
