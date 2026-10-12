@@ -1,9 +1,6 @@
 """API y panel web de control del tanque.
 
-Ejecutar con un solo worker (el hardware es único):
-    uv run uvicorn main:app --host 0.0.0.0 --port 8080
-Sin Raspberry Pi (desarrollo):
-    GPIOZERO_PIN_FACTORY=mock uv run uvicorn main:app
+Se ejecuta con un solo worker (el hardware es único): ver `__main__.py`.
 """
 
 from contextlib import asynccontextmanager
@@ -12,7 +9,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
 
-from tank import Tank
+from .tank import Tank
 
 STATIC = Path(__file__).parent / "static"
 

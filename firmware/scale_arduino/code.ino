@@ -64,7 +64,7 @@ void loop() {
       Serial.print("Load_cell output val: ");
       Serial.println(i);
       //LCD Print
-      lcd.clear(); // Clears the display 
+      lcd.clear(); // Clears the display
       lcd.setCursor(0,0);  // set the cursor to column 0, line 0
       lcd.print("Peso(g): ");
       String s = String(int(i));

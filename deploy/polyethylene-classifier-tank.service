@@ -1,0 +1,15 @@
+[Unit]
+Description=Polyethylene Classifier Tank Service
+After=network.target
+
+[Service]
+Type=simple
+User=ga
+WorkingDirectory=/home/ga/polyethylene-classifier-tank
+ExecStart=/home/ga/.local/bin/uv run --extra pi tank-server
+Restart=always
+TimeoutStartSec=10
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

@@ -6,23 +6,22 @@ from time import sleep
 
 from gpiozero import LED, AngularServo, Button, PhaseEnableMotor, Servo
 
+from .config import (
+    FIN_CARRERA,
+    INICIAR,
+    NEMA_DIR,
+    NEMA_STEP,
+    PARAR,
+    RELE_CORRIENTE,
+    RELE_LLENADO,
+    SAPO,
+    TIEMPO_DESFOGUE_SEC,
+    TIEMPO_LIMPIEZA_SEC,
+    TIEMPO_LLENADO_SEC,
+    TUNEL,
+)
+
 warnings.filterwarnings("ignore")
-
-# Declaración de pines
-INICIAR = "J8:37"
-PARAR = "J8:35"
-FIN_CARRERA = "J8:19"
-RELE_LLENADO = "J8:7"
-RELE_CORRIENTE = "J8:11"
-NEMA_STEP = "J8:3"
-NEMA_DIR = "J8:5"
-# *PWM
-SAPO = "J8:33"
-TUNEL = "J8:32"
-
-TIEMPO_LLENADO_SEC = 15
-TIEMPO_LIMPIEZA_SEC = 60
-TIEMPO_DESFOGUE_SEC = 15
 
 
 class Tank:
