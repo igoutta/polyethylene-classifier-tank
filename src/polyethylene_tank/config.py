@@ -27,6 +27,9 @@ SCALE_DATA = 9  # pin físico 21
 SCALE_CLOCK = 11  # pin físico 23
 SCALE_REFERENCE_UNIT = -7627  # cuentas por gramo (el signo depende del cableado)
 
+# Registro (systemd/journalctl ya añade la fecha y hora)
+LOG_FORMAT = "%(levelname)s %(name)s: %(message)s"
+
 # Servidor web
 HOST = "0.0.0.0"
 PORT = 8080

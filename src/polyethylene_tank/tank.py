@@ -1,5 +1,6 @@
 """Hardware y ciclo de limpieza del tanque clasificador de polietileno."""
 
+import logging
 import warnings
 from threading import Event, Lock, Thread
 from time import sleep
@@ -22,6 +23,7 @@ from .config import (
 )
 
 warnings.filterwarnings("ignore")
+log = logging.getLogger(__name__)
 
 
 class Tank:
@@ -69,7 +71,7 @@ class Tank:
         try:
             self.stop()
         finally:
-            print("Finaliza todas las conexiones")
+            log.info("Cierra todas las conexiones")
             for device in (
                 self.bomba_llenado,
                 self.bomba_corriente,
@@ -85,12 +87,12 @@ class Tank:
     def _join_cycle(self):
         if self._thread is None:
             return
-        print("Termina el hilo principal")
+        log.info("Espera a que termine el ciclo en curso")
         self._thread.join()
         self._thread = None
 
     def _apagar_actuadores(self):
-        print("Apaga todos los actuadores")
+        log.info("Apaga todos los actuadores")
         self.bomba_llenado.off()
         self.bomba_corriente.off()
         self.motor_nema.stop()
@@ -117,23 +119,23 @@ class Tank:
             # Cada etapa devuelve False si se pidió parar durante su espera
             if not all(etapa() for etapa in etapas):
                 return
-            print("Termina el ciclo")
+            log.info("Termina el ciclo")
 
     def _llenar(self):
         self.step = "Llenando el tanque"
-        print("Activando bomba y cerrando valvulas de desfogue")
+        log.info("Activa la bomba de llenado")
         self.bomba_llenado.on()
         for _ in range(TIEMPO_LLENADO_SEC * 10):
             if self.sensor_limite.is_active:
                 return True
             if self._wait(0.1):
                 return False
-        print("AVISO: el sensor no detectó el tanque lleno a tiempo")
+        log.warning("El sensor no detectó el tanque lleno a tiempo")
         return True
 
     def _clasificar(self):
         self.step = "Clasificando"
-        print("Inicia la clasificación")
+        log.info("Inicia la clasificación")
         self.bomba_llenado.off()
         self.bomba_corriente.on()
         self.motor_nema.forward(speed=0.95)  # 0.9 es lo óptimo
@@ -141,7 +143,7 @@ class Tank:
 
     def _desfogar(self):
         self.step = "Desfogando"
-        print("Inicia el desfogue por el tubo de escape")
+        log.info("Inicia el desfogue por el tubo de escape")
         self.motor_nema.stop()
         if self._wait(2):
             return False
@@ -150,7 +152,7 @@ class Tank:
 
     def _cerrar(self):
         self.step = "Limpiando el tubo"
-        print("Cierra el tubo de escape y apaga la corriente")
+        log.info("Cierra el tubo de escape y apaga la corriente")
         self.bomba_corriente.off()
         self.servo_sapo.min()
         sleep(1)
