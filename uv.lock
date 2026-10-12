@@ -232,8 +232,8 @@ requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
     { name = "gpiozero", specifier = ">=2.0" },
     { name = "lgpio", marker = "extra == 'pi'", specifier = ">=0.2" },
-    { name = "rplcd", marker = "extra == 'scale'", specifier = "==1.3.1" },
-    { name = "smbus2", marker = "extra == 'scale'", specifier = "==0.4.3" },
+    { name = "rplcd", marker = "extra == 'scale'", specifier = ">=1.4.0" },
+    { name = "smbus2", marker = "extra == 'scale'", specifier = ">=0.6.1" },
     { name = "uvicorn", specifier = ">=0.30" },
 ]
 provides-extras = ["pi", "scale"]
@@ -421,11 +421,11 @@ wheels = [
 
 [[package]]
 name = "rplcd"
-version = "1.3.1"
+version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/7f/f7/9860cc59f12fcb80ced36b45ce05dd321f381b8ff3d00b79ad48bcbd96b9/RPLCD-1.3.1.tar.gz", hash = "sha256:b99d293f358af1c0525fcfeabdc6466049e555db569ffbca3f217591fc14e4f9", size = 36577, upload-time = "2023-03-24T23:49:56.504Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/af/64/178ba17c8c44fa7816bab0a9c2172174a21574fee860e5b53a4939c9bd44/rplcd-1.4.0.tar.gz", hash = "sha256:265d6a54e4ed8b1615dbd6b33c6f20ff671c656148cab311ae1b6fa37080095a", size = 36450, upload-time = "2025-03-29T22:44:57.996Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/a9/33/af205c7b6a1210af76957924070a6b0da909c8f1de755d5d321548274dde/RPLCD-1.3.1-py2.py3-none-any.whl", hash = "sha256:04920b645b4fea79addebbc9c8368971a5af307ca70df3f0b1842d3de2e01040", size = 49256, upload-time = "2023-03-24T23:49:52.532Z" },
+    { url = "https://files.pythonhosted.org/packages/83/f5/f3bc1ed33b44c360ca2aceccec4513ee3e2620d23eab32ccb04ab5f51cb9/rplcd-1.4.0-py3-none-any.whl", hash = "sha256:cea57fa96130bced88f6001acdb6169538c29409b2e3bb344c2c30cbb1cb192c", size = 48210, upload-time = "2025-03-29T22:44:56.457Z" },
 ]
 
 [[package]]
@@ -464,11 +464,11 @@ wheels = [
 
 [[package]]
 name = "smbus2"
-version = "0.4.3"
+version = "0.6.1"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/98/17/9663936e52a348b3ad1c85e6ca6071d2abf00a5f64f2df50bec8dcca6e16/smbus2-0.4.3.tar.gz", hash = "sha256:36f2288a8e1a363cb7a7b2244ec98d880eb5a728a2494ac9c71e9de7bf6a803a", size = 16801, upload-time = "2023-08-25T19:55:24.099Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/87/37/b3f7b501502c4915ba3819d1dc277bf3f5fae4a9d067caa4f502aaddd889/smbus2-0.6.1.tar.gz", hash = "sha256:2b043372abf8f6029a632c3aab36b641c5d5872b1cbad599fc68e17ac4fd90a5", size = 17274, upload-time = "2026-04-09T20:37:54.821Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/d6/5b/3ada173f07b4ec9bfa03b779e59ecada48eb7cb1a29f51cfce70edce7f3f/smbus2-0.4.3-py2.py3-none-any.whl", hash = "sha256:a2fc29cfda4081ead2ed61ef2c4fc041d71dd40a8d917e85216f44786fca2d1d", size = 11553, upload-time = "2023-08-25T19:55:23.17Z" },
+    { url = "https://files.pythonhosted.org/packages/96/f2/c78a68bd739ac8fc608747cff73a4db3b19f3135658ed4e64374f6425cbf/smbus2-0.6.1-py2.py3-none-any.whl", hash = "sha256:650feeb27ca0ed58b07db4c10201c2a662c41305b7bf6e5fab9d888056f48180", size = 11767, upload-time = "2026-04-09T20:37:53.728Z" },
 ]
 
 [[package]]
