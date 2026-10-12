@@ -15,7 +15,7 @@ Mejoras y comprobaciones que quedan por hacer, de más a menos importante. Al re
 
 ## 2. Lista de puesta en marcha
 
-Escribir `docs/puesta-en-marcha.md` con las comprobaciones en la Pi, en orden, para no saltarse ninguna. Debe incluir todo lo de la sección [Comprobaciones en la Pi](#comprobaciones-en-la-pi).
+Escribir `docs/commissioning.md` con las comprobaciones en la Pi, en orden, para no saltarse ninguna. Debe incluir todo lo de la sección [Comprobaciones en la Pi](#comprobaciones-en-la-pi).
 
 ## 3. Contraseña en texto claro
 
