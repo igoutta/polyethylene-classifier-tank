@@ -1,20 +1,30 @@
 """Balanza (HX711) con pantalla LCD I2C. Servicio independiente del tanque.
 
-Ejecutar: `uv run --extra pi --extra scale tank-scale`
+Usa `hx711-rpi-py` (necesita libhx711: scripts/install-hx711.sh).
+Ejecutar: `uv run --extra scale tank-scale`
 """
 
+from datetime import timedelta
+
+from HX711 import AdvancedHX711, Options, Rate, ReadType
 from RPLCD.i2c import CharLCD
 
 from .config import SCALE_CLOCK, SCALE_DATA, SCALE_REFERENCE_UNIT
-from .hx711 import HX711
 
 LCD_COLUMNS = 16
+TARE_SECONDS = 10
+READ_SECONDS = 1
 
 
 def _mostrar(lcd, peso):
     # Se sobrescribe la segunda línea en vez de limpiar: la pantalla no parpadea
     lcd.cursor_pos = (1, 0)
     lcd.write_string(f"{peso:>{LCD_COLUMNS}.1f}")
+
+
+def _medir(seconds):
+    # Tantas muestras como entren en `seconds`, usando la mediana
+    return Options(timedelta(seconds=seconds), ReadType.Median)
 
 
 def main():
@@ -30,11 +40,13 @@ def main():
     lcd.clear()
     lcd.write_string("Peso:")
     try:
-        with HX711.from_gpio(SCALE_DATA, SCALE_CLOCK) as hx:
-            hx.reference_unit = SCALE_REFERENCE_UNIT
-            hx.tare(seconds=10)
+        # offset 0: el cero se fija con zero() al iniciar. 80 Hz = pin RATE del chip
+        with AdvancedHX711(
+            SCALE_DATA, SCALE_CLOCK, SCALE_REFERENCE_UNIT, 0, Rate.HZ_80
+        ) as hx:
+            hx.zero(_medir(TARE_SECONDS))
             while True:
-                peso = hx.weight(seconds=1)
+                peso = float(hx.weight(_medir(READ_SECONDS)))
                 print(peso)
                 _mostrar(lcd, peso)
     except KeyboardInterrupt:

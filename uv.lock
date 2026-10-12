@@ -139,6 +139,16 @@ wheels = [
 ]
 
 [[package]]
+name = "hx711-rpi-py"
+version = "1.65.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/db/cb/7426f6621b9a2ef616e3eb7dbc68073504a9b81658d877158b81233cff3a/hx711-rpi-py-1.65.0.tar.gz", hash = "sha256:fafe804a6deda31f5a6476eba59a0f39ee75bafab5c6c158a475a9e8407ed2d6", size = 6668, upload-time = "2024-01-21T12:31:25.023Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/de/b5/afe7e5ef662a9aaf07d85b8f04bf02b223a6d19114171661636c7d5cbd09/hx711_rpi_py-1.65.0-cp311-cp311-linux_armv6l.whl", hash = "sha256:10d15b6f6e7b7480a12cf15cb793fc2e804142fa80ff29927987bd972b7e2ac1", size = 154562, upload-time = "2024-01-21T12:31:34.702Z" },
+    { url = "https://files.pythonhosted.org/packages/27/49/f64b71716922ebcd0551dfb1c6a06da222faf2396150a00fecba28c7bff2/hx711_rpi_py-1.65.0-cp311-cp311-linux_armv7l.whl", hash = "sha256:2dd3abe960cb04df5e5ea36d0789db91fbbf6ce4d31df8f0dcd49ce13922d9c6", size = 154560, upload-time = "2024-01-21T12:31:22.998Z" },
+]
+
+[[package]]
 name = "idna"
 version = "3.20"
 source = { registry = "https://pypi.org/simple" }
@@ -215,6 +225,7 @@ pi = [
     { name = "lgpio" },
 ]
 scale = [
+    { name = "hx711-rpi-py", marker = "sys_platform == 'linux'" },
     { name = "rplcd" },
     { name = "smbus2" },
 ]
@@ -231,6 +242,7 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">=0.115" },
     { name = "gpiozero", specifier = ">=2.0" },
+    { name = "hx711-rpi-py", marker = "sys_platform == 'linux' and extra == 'scale'", specifier = ">=1.65.0" },
     { name = "lgpio", marker = "extra == 'pi'", specifier = ">=0.2" },
     { name = "rplcd", marker = "extra == 'scale'", specifier = ">=1.4.0" },
     { name = "smbus2", marker = "extra == 'scale'", specifier = ">=0.6.1" },
