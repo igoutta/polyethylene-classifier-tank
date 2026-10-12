@@ -17,6 +17,8 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
+from .config import TIEMPOS_FILE
+from .settings import Tiempos, cargar, guardar
 from .tank import Tank
 
 STATIC = Path(__file__).parent / "static"
@@ -52,7 +54,7 @@ def autenticar(credenciales: Annotated[HTTPBasicCredentials | None, Depends(basi
 async def lifespan(app: FastAPI):
     if not os.environ.get("TANK_PASSWORD"):
         log.warning("TANK_PASSWORD no está definida: el panel no pide contraseña")
-    app.state.tank = Tank()
+    app.state.tank = Tank(tiempos=cargar(TIEMPOS_FILE))
     try:
         yield
     finally:
@@ -67,7 +69,14 @@ app = FastAPI(
 
 
 def estado(tank: Tank):
-    return {"running": tank.running, "step": tank.step, "error": tank.error}
+    ultimo = tank.ultimo_ciclo
+    return {
+        "running": tank.running,
+        "step": tank.step,
+        "error": tank.error,
+        "ciclos": tank.ciclos,
+        "ultimo_ciclo": ultimo.isoformat(timespec="seconds") if ultimo else None,
+    }
 
 
 # Los endpoints son sync a propósito: FastAPI los ejecuta en un hilo y
@@ -87,6 +96,20 @@ def start():
 def stop():
     app.state.tank.stop()
     return estado(app.state.tank)
+
+
+@app.get("/api/tiempos")
+def leer_tiempos() -> Tiempos:
+    return app.state.tank.tiempos
+
+
+@app.put("/api/tiempos")
+def cambiar_tiempos(tiempos: Tiempos) -> Tiempos:
+    # Se aplican desde la próxima etapa, sin detener el ciclo
+    guardar(TIEMPOS_FILE, tiempos)
+    app.state.tank.tiempos = tiempos
+    log.info("Nuevos tiempos: %s", tiempos)
+    return tiempos
 
 
 @app.get("/")

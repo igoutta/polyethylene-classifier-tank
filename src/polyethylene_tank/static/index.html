@@ -15,6 +15,13 @@
       #start { background: #1a7f37; }
       #stop { background: #b42318; }
       #error { margin-top: 1rem; padding: 0.75rem; border-radius: 0.5rem; background: #fef3f2; color: #b42318; text-align: left; }
+      .info { margin-top: 1.5rem; color: #555; }
+      details { margin-top: 1.5rem; text-align: left; }
+      summary { cursor: pointer; font-weight: 600; }
+      label { display: flex; justify-content: space-between; align-items: center; margin-top: 0.75rem; }
+      input { width: 6rem; padding: 0.4rem; font-size: 1rem; }
+      #guardar { padding: 0.75rem; font-size: 1rem; background: #344054; }
+      #msg { min-height: 1.5em; margin-top: 0.5rem; color: #555; }
    </style>
 </head>
 <body>
@@ -25,8 +32,25 @@
    <button id="start">COMENZAR</button>
    <button id="stop">PARAR</button>
 
+   <div class="info">
+      Ciclos completados: <strong id="ciclos">0</strong>
+      <span id="ultimo"></span>
+   </div>
+
+   <details>
+      <summary>Tiempos del ciclo</summary>
+      <form id="tiempos">
+         <label>Llenado máximo (s) <input id="llenado" type="number" min="0.1" max="600" step="any" required></label>
+         <label>Clasificación (s) <input id="limpieza" type="number" min="0.1" max="600" step="any" required></label>
+         <label>Desfogue (s) <input id="desfogue" type="number" min="0.1" max="600" step="any" required></label>
+         <button id="guardar" type="submit">Guardar</button>
+         <div id="msg"></div>
+      </form>
+   </details>
+
    <script>
       const $ = (id) => document.getElementById(id);
+      const CAMPOS = ["llenado", "limpieza", "desfogue"];
 
       function render(s) {
          $("estado").textContent = s.running ? "EN EJECUCIÓN" : "DETENIDO";
@@ -35,6 +59,10 @@
          $("start").disabled = s.running;
          $("error").hidden = !s.error;
          $("error").textContent = s.error ? "Error: " + s.error : "";
+         $("ciclos").textContent = s.ciclos;
+         $("ultimo").textContent = s.ultimo_ciclo
+            ? "· último a las " + new Date(s.ultimo_ciclo).toLocaleTimeString()
+            : "";
       }
 
       async function call(path, method) {
@@ -47,6 +75,24 @@
          }
       }
 
+      async function cargarTiempos() {
+         const t = await (await fetch("/api/tiempos")).json();
+         for (const campo of CAMPOS) $(campo).value = t[campo];
+      }
+
+      $("tiempos").onsubmit = async (event) => {
+         event.preventDefault();
+         const body = Object.fromEntries(CAMPOS.map((c) => [c, Number($(c).value)]));
+         const r = await fetch("/api/tiempos", {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+         });
+         $("msg").textContent = r.ok
+            ? "Guardado. Se aplica desde la próxima etapa."
+            : "Valores no válidos: entre 0,1 y 600 segundos.";
+      };
+
       $("start").onclick = () => call("/api/start", "POST");
       $("stop").onclick = async () => {
          $("stop").disabled = true; // detener tarda unos segundos
@@ -54,6 +100,7 @@
          $("stop").disabled = false;
       };
 
+      cargarTiempos();
       call("/api/status", "GET");
       setInterval(() => call("/api/status", "GET"), 1000);
    </script>

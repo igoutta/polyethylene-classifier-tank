@@ -2,6 +2,7 @@
 
 import logging
 import warnings
+from datetime import datetime
 from threading import Event, Lock, Thread
 from time import monotonic, sleep
 
@@ -54,6 +55,8 @@ class Tank:
         self.tiempos = tiempos or Tiempos()
         self.step = "Detenido"
         self.error = None
+        self.ciclos = 0  # completados desde que arrancó el servicio
+        self.ultimo_ciclo = None
         self._thread = None
         self._stop_event = Event()
         self._lock = Lock()
@@ -164,7 +167,9 @@ class Tank:
             # Cada etapa devuelve False si se pidió parar durante su espera
             if not all(etapa() for etapa in etapas):
                 return
-            log.info("Termina el ciclo")
+            self.ciclos += 1
+            self.ultimo_ciclo = datetime.now()
+            log.info("Termina el ciclo %d", self.ciclos)
 
     def _llenar(self):
         self.step = "Llenando el tanque"

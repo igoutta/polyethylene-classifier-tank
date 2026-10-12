@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from polyethylene_tank.app import app
+from polyethylene_tank.config import TIEMPOS_FILE
 
 
 @pytest.fixture
@@ -16,6 +17,8 @@ def test_starts_stopped(client):
         "running": False,
         "step": "Detenido",
         "error": None,
+        "ciclos": 0,
+        "ultimo_ciclo": None,
     }
 
 
@@ -48,3 +51,35 @@ def test_index_page(client):
     response = client.get("/")
     assert response.status_code == 200
     assert "COMENZAR" in response.text
+
+
+def test_default_timings(client):
+    assert client.get("/api/tiempos").json() == {
+        "llenado": 15,
+        "limpieza": 60,
+        "desfogue": 15,
+    }
+
+
+def test_change_timings_saves_and_applies_them(client):
+    nuevos = {"llenado": 20, "limpieza": 45.5, "desfogue": 10}
+    assert client.put("/api/tiempos", json=nuevos).json() == nuevos
+    assert client.get("/api/tiempos").json() == nuevos
+    assert TIEMPOS_FILE.exists()
+
+
+def test_saved_timings_survive_a_restart():
+    nuevos = {"llenado": 20, "limpieza": 30, "desfogue": 10}
+    with TestClient(app) as client:
+        client.put("/api/tiempos", json=nuevos)
+    with TestClient(app) as reiniciado:  # el primero ya liberó los pines
+        assert reiniciado.get("/api/tiempos").json() == nuevos
+
+
+@pytest.mark.parametrize("llenado", [0, -5, 601, "mucho"])
+def test_invalid_timings_are_rejected(client, llenado):
+    response = client.put(
+        "/api/tiempos", json={"llenado": llenado, "limpieza": 60, "desfogue": 15}
+    )
+    assert response.status_code == 422
+    assert not TIEMPOS_FILE.exists()

@@ -110,3 +110,11 @@ def test_stop_button_stops_everything(tank):
     presionar(tank.boton_parar)
     assert esperar(lambda: not tank.running and tank.step == "Detenido")
     assert bombas_apagadas(tank)
+
+
+def test_cycle_repeats_and_counts(tank):
+    tanque_lleno(tank)
+    tank.start()
+    assert esperar(lambda: tank.ciclos >= 2)
+    assert tank.ultimo_ciclo is not None
+    assert tank.error is None
