@@ -22,7 +22,7 @@ Estos puntos vienen de la revisión del código y de la documentación de las li
 - **Error "El tanque no se llenó en 15 s":** el fin de carrera no detectó el tanque lleno a tiempo, así que se apagó todo. Revisar el sensor (cableado, que sea activo en alto) y la bomba de llenado. Si el tanque tarda más en llenarse, subir el *llenado máximo* en el panel. Se vuelve a intentar con COMENZAR.
 - **Otro error en el panel:** el ciclo se detuvo por una excepción inesperada. El detalle completo está en `journalctl -u polyethylene-classifier-tank`.
 - **Los servos vibran o se mueven solos** *(por verificar)*: es el PWM por software. En la Pi 4, activar pigpio (ver [setup.md](setup.md#servos-sin-vibración-pigpio-opcional)).
-- **El servicio no arranca tras activar pigpio:** `pigpiod` no está corriendo (`systemctl status pigpiod`). Activarlo o comentar `GPIOZERO_PIN_FACTORY=pigpio` en `/etc/polyethylene-tank.env`.
+- **El servicio no arranca tras activar pigpio:** `pigpiod` no está corriendo (`systemctl status pigpiod`). Activarlo, o volver a poner el `#` delante de `GPIOZERO_PIN_FACTORY=pigpio` en `/etc/polyethylene-tank.env`.
 - **PARAR tarda unos segundos:** es normal. Bombas y motor se apagan al instante; luego los servos vuelven a su posición de reposo (~5 s).
 - **Un botón físico no responde:** debe ir entre su pin y GND. Con `journalctl -u polyethylene-classifier-tank -f` se ve `Botón INICIAR presionado` o `Botón PARAR presionado` al pulsarlo.
 - **Los tiempos del panel no se guardan:** revisar permisos de `~/.local/state/polyethylene-tank/`. Si `tiempos.json` no es válido, el registro lo avisa y se usan los de `config.py`.

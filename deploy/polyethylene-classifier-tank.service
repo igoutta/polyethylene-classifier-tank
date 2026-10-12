@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=ga
 WorkingDirectory=/home/ga/polyethylene-classifier-tank
-# Contraseña del panel (opcional): ver polyethylene-tank.env.example
+# Opciones (contraseña del panel, pigpio): ver polyethylene-tank.env.example
 EnvironmentFile=-/etc/polyethylene-tank.env
 ExecStart=/home/ga/.local/bin/uv run --extra pi tank-server
 Restart=always

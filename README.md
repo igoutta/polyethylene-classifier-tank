@@ -46,7 +46,12 @@ uv run --extra pi tank-server            # panel en http://<ip-de-la-pi>:8080
 uv run --extra scale tank-scale          # balanza con LCD (antes: scripts/install-hx711.sh)
 ```
 
-El servidor usa un solo proceso porque el hardware no se puede compartir. Con la variable `TANK_PASSWORD` definida, el panel pide usuario (`TANK_USER`, por defecto `admin`) y contraseña; ver [docs/setup.md](docs/setup.md).
+El servidor usa un solo proceso porque el hardware no se puede compartir. Las opciones del servicio van en `/etc/polyethylene-tank.env` (copiar [deploy/polyethylene-tank.env.example](deploy/polyethylene-tank.env.example)):
+
+- `TANK_PASSWORD` (y `TANK_USER`, por defecto `admin`): el panel pide usuario y contraseña. Sin ella queda abierto a la red.
+- `GPIOZERO_PIN_FACTORY=pigpio`: servos sin vibración en la Pi 4. Viene comentada (con `#` delante); se activa borrando el `#`, después de instalar `pigpiod`.
+
+Pasos completos en [docs/setup.md](docs/setup.md).
 
 | API | |
 |---|---|

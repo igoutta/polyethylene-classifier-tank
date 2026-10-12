@@ -68,7 +68,7 @@ sudo systemctl enable --now pigpiod
 systemctl status pigpiod                       # debe estar "active (running)"
 ```
 
-Luego descomentar `GPIOZERO_PIN_FACTORY=pigpio` en `/etc/polyethylene-tank.env` y reiniciar el servicio del tanque. Para volver a lgpio, comentar la línea. *(Por verificar en la Pi: que los servos dejen de vibrar.)*
+Luego, en `/etc/polyethylene-tank.env`, borrar el `#` del principio de la línea `#GPIOZERO_PIN_FACTORY=pigpio` para que quede `GPIOZERO_PIN_FACTORY=pigpio`, y reiniciar el servicio del tanque (`sudo systemctl restart polyethylene-classifier-tank`). Para volver a lgpio, poner el `#` de nuevo. *(Por verificar en la Pi: que los servos dejen de vibrar.)*
 
 ## Archivos que escribe
 
