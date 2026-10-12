@@ -48,8 +48,16 @@ Los botones físicos se siguen inicializando en `tank.py`, pero ninguna acción 
 
 ## Calibración de la balanza
 
-1. Con la báscula vacía el servicio hace el cero al arrancar (tarda ~10 s).
-2. Colocar un peso conocido y leer el valor mostrado.
-3. Ajustar `SCALE_REFERENCE_UNIT` en `config.py`: `unidad = unidad_actual × lectura / peso_real`.
+El servicio hace el cero con la báscula vacía al arrancar (tarda ~10 s), así que solo hay que calibrar la unidad de referencia (`SCALE_REFERENCE_UNIT` en `config.py`, cuentas por gramo):
 
-Si el signo del peso sale invertido, cambiar el signo de `SCALE_REFERENCE_UNIT`.
+1. Detener el servicio de la balanza para liberar los pines: `sudo systemctl stop polyethylene-scale`.
+2. Ejecutar el script de calibración de hx711-rpi-py con los pines BCM de datos y reloj, y seguir las instrucciones (pide la unidad, el peso conocido y que se quite y se ponga el objeto):
+
+   ```sh
+   curl -O https://raw.githubusercontent.com/endail/hx711-rpi-py/master/src/calibrate.py
+   uv run --extra scale python calibrate.py 9 11
+   ```
+
+3. Copiar el valor `REFERENCE UNIT` que imprime a `SCALE_REFERENCE_UNIT` y reiniciar el servicio.
+
+Si el signo del peso sale invertido, el script ya lo refleja en el signo de la unidad de referencia.

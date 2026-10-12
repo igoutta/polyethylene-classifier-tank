@@ -16,6 +16,16 @@ i2cdetect -y 1
 
 > Los pines `J8:3` y `J8:5` (motor NEMA) son los de I2C (SDA/SCL). Si el motor y la LCD están en la misma Pi hay un conflicto: ver [hardware.md](hardware.md).
 
+## Balanza (HX711)
+
+La balanza usa [hx711-rpi-py](https://pypi.org/project/hx711-rpi-py/), que es un envoltorio de la librería C++ `libhx711`. Hay que compilarla e instalarla **antes** de instalar el proyecto:
+
+```sh
+./scripts/install-hx711.sh
+```
+
+El script instala las herramientas de compilación y `liblgpio-dev`, compila `libhx711` desde GitHub y la registra con `ldconfig`. Solo hace falta una vez por Pi. El paquete de Python se compila al hacer `uv sync --extra scale` (tarda un poco la primera vez).
+
 ## Proyecto
 
 ```sh

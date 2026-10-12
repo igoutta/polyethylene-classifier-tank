@@ -1,6 +1,6 @@
 # Problemas frecuentes
 
-Estos puntos vienen de la revisión del código y de cómo funcionan el HX711 y gpiozero; no todos se han comprobado en la Pi real. Marcados con *(por verificar)* los que dependen del hardware.
+Estos puntos vienen de la revisión del código y de la documentación de las librerías; no todos se han comprobado en la Pi real. Marcados con *(por verificar)* los que dependen del hardware.
 
 ## El panel no abre
 
@@ -25,11 +25,12 @@ Estos puntos vienen de la revisión del código y de cómo funcionan el HX711 y 
 
 ## La balanza
 
+- **`uv sync --extra scale` falla al compilar `hx711-rpi-py`:** falta `libhx711` o las herramientas de compilación. Ejecutar `./scripts/install-hx711.sh` y volver a intentar. Los únicos binarios ya compilados que publica el paquete son para Python 3.11 en ARM de 32 bits; en otro caso (Pi OS de 64 bits u otra versión de Python) se compila desde el código fuente, lo que necesita el script.
+- **`error while loading shared libraries: libhx711.so`:** la librería no está registrada: `sudo ldconfig` y comprobar con `ldconfig -p | grep hx711`.
 - **La pantalla no muestra nada:** comprobar `i2cdetect -y 1` (debe aparecer `27`), que I2C esté activo en `raspi-config` y el cableado SDA/SCL. Algunas pantallas usan la dirección `0x3F`.
-- **`TimeoutError: HX711 sin datos`:** el chip no responde. Revisar alimentación, que `DT` y `SCK` estén en los pines BCM 9 y 11 y que no estén cruzados.
-- **`TimeoutError: ... lecturas inválidas`:** todas las lecturas se descartaron. Causas posibles: cable suelto (DOUT siempre en alto) o que el sistema esté muy cargado y los pulsos de reloj duren más de 50 µs. Cerrar otros procesos, usar cables cortos o pasar a la balanza Arduino.
-- **El peso salta o es ruidoso:** el driver ya usa la mediana de varias lecturas. Revisar la alimentación del HX711 y que la celda de carga esté bien sujeta.
-- **El peso sale con signo invertido:** cambiar el signo de `SCALE_REFERENCE_UNIT`.
+- **`GpioException` o `TimeoutException` al iniciar:** el HX711 no responde. Revisar alimentación, que `DT` y `SCK` estén en los pines BCM 9 y 11 y que no estén cruzados, y que no haya otro proceso usando esos pines.
+- **El peso salta o es ruidoso:** el servicio ya usa la mediana de todas las muestras de cada segundo. Revisar la alimentación del HX711 y que la celda esté bien sujeta. La librería hace un mejor trabajo con prioridad de tiempo real, que solo se obtiene con privilegios (la documentación de `libhx711` indica ejecutarla con `sudo`) *(por verificar en el servicio de systemd)*. Si sigue ruidoso, la balanza en Arduino de `firmware/scale_arduino/` evita el problema porque un microcontrolador tiene tiempos exactos.
+- **El peso sale con signo invertido o con un factor equivocado:** recalibrar (ver [hardware.md](hardware.md)).
 
 ## Conflicto entre el motor NEMA y la LCD
 

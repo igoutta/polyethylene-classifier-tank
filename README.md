@@ -10,11 +10,11 @@ src/polyethylene_tank/
     tank.py        hardware y ciclo de limpieza (clase Tank)
     app.py         API FastAPI + panel web
     static/        página del panel (sin dependencias externas)
-    hx711.py       driver del HX711 sobre gpiozero/lgpio
     scale.py       balanza con LCD I2C (servicio independiente)
     __main__.py    arranque del servidor
 tests/             pruebas con pines simulados
 tools/             scripts de banco (servos, motor NEMA)
+scripts/           instalación de libhx711 en la Pi
 firmware/          alternativa de la balanza en Arduino
 deploy/            servicios de systemd
 docs/              instalación, hardware, red y problemas frecuentes
@@ -37,7 +37,7 @@ Requiere [uv](https://docs.astral.sh/uv/) (`curl -LsSf https://astral.sh/uv/inst
 
 ```sh
 uv run --extra pi tank-server            # panel en http://<ip-de-la-pi>:8080
-uv run --extra pi --extra scale tank-scale   # balanza con LCD
+uv run --extra scale tank-scale          # balanza con LCD (antes: scripts/install-hx711.sh)
 ```
 
 El servidor usa un solo proceso porque el hardware no se puede compartir. API: `GET /api/status`, `POST /api/start`, `POST /api/stop`.
