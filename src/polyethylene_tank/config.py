@@ -16,9 +16,9 @@ FIN_CARRERA_BOUNCE_SEC = 0.005
 RELE_LLENADO = "J8:7"
 RELE_CORRIENTE = "J8:11"
 
-# Motor NEMA
-NEMA_STEP = "J8:3"
-NEMA_DIR = "J8:5"
+# Motor NEMA. Antes en J8:3 y J8:5, que son los pines I2C de la pantalla LCD
+NEMA_STEP = "J8:13"  # GPIO27
+NEMA_DIR = "J8:15"  # GPIO22
 
 # Servos (PWM)
 SAPO = "J8:33"
