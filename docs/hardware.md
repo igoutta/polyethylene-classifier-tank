@@ -9,8 +9,8 @@ Los pines se nombran en la numeración física de la Raspberry Pi (`J8:<n>`, de 
 | Fin de carrera (tanque lleno) | `J8:19` | 10 | Entrada | Activo en alto (pull-down) |
 | Relé bomba de llenado | `J8:7` | 4 | Salida | Activo en alto |
 | Relé bomba de corriente | `J8:11` | 17 | Salida | Activo en alto |
-| Motor NEMA, *enable* (velocidad) | `J8:3` | 2 | PWM | Ver advertencia de I2C |
-| Motor NEMA, *phase* (dirección) | `J8:5` | 3 | Salida | Ver advertencia de I2C |
+| Motor NEMA, *enable* (STEP, velocidad) | `J8:13` | 27 | PWM | Antes en `J8:3` |
+| Motor NEMA, *phase* (DIR, dirección) | `J8:15` | 22 | Salida | Antes en `J8:5` |
 | Servo `sapo` (desfogue) | `J8:33` | 13 | PWM | Abre/cierra el tubo de escape |
 | Servo `túnel` (limpieza del tubo) | `J8:32` | 12 | PWM | Barre el tubo con tiempos fijos |
 | Botón iniciar | `J8:37` | 26 | Entrada | Entre el pin y GND (pull-up interno) |
@@ -19,9 +19,11 @@ Los pines se nombran en la numeración física de la Raspberry Pi (`J8:<n>`, de 
 - **Fin de carrera:** antirrebote de 5 ms (`FIN_CARRERA_BOUNCE_SEC`). Antes era `5`, que gpiozero interpreta como cinco **segundos**.
 - **Botones:** antirrebote de 50 ms. PARAR corta bombas y motor al instante y no depende del panel ni de la red. Si un botón no está conectado, el pull-up interno lo deja en reposo y no hace nada.
 
-### Advertencia: I2C y el motor NEMA
+### Motor NEMA: pines cambiados
 
-`J8:3` y `J8:5` son SDA y SCL de I2C (con resistencias pull-up fijas). La pantalla LCD de la balanza también usa I2C. Si ambos están en la misma Pi, comparten esos pines y se interfieren. Ver [troubleshooting.md](troubleshooting.md). Si se mueve el motor a otros pines, actualizar `NEMA_STEP` y `NEMA_DIR` en `config.py`.
+El motor estaba en `J8:3` y `J8:5`, que son SDA y SCL de I2C (con resistencias pull-up fijas) y los comparte la pantalla LCD de la balanza. Ahora está en `J8:13` (STEP) y `J8:15` (DIR), pines sin otra función, junto al relé de `J8:11`. **Hay que mover los dos cables** en la Pi: STEP del pin físico 3 al 13 y DIR del 5 al 15. La tierra del driver puede ir a `J8:9` o `J8:14`.
+
+`J8:3` y `J8:5` quedan solo para la LCD.
 
 ### Servos
 

@@ -14,7 +14,7 @@ lsmod | grep i2c_
 i2cdetect -y 1
 ```
 
-> Los pines `J8:3` y `J8:5` (motor NEMA) son los de I2C (SDA/SCL). Si el motor y la LCD están en la misma Pi hay un conflicto: ver [hardware.md](hardware.md).
+> La LCD usa `J8:3` y `J8:5` (I2C). El motor NEMA ya no está en esos pines, sino en `J8:13` y `J8:15`: ver [hardware.md](hardware.md).
 
 ## Balanza (HX711)
 

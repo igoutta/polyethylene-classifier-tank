@@ -37,6 +37,6 @@ Estos puntos vienen de la revisión del código y de la documentación de las li
 - **El peso salta o es ruidoso:** el servicio ya usa la mediana de todas las muestras de cada segundo. Revisar la alimentación del HX711 y que la celda esté bien sujeta. La librería hace un mejor trabajo con prioridad de tiempo real, que solo se obtiene con privilegios (la documentación de `libhx711` indica ejecutarla con `sudo`) *(por verificar en el servicio de systemd)*. Si sigue ruidoso, la balanza en Arduino de `firmware/scale_arduino/` evita el problema porque un microcontrolador tiene tiempos exactos.
 - **El peso sale con signo invertido o con un factor equivocado:** recalibrar (ver [hardware.md](hardware.md)).
 
-## Conflicto entre el motor NEMA y la LCD
+## El motor NEMA no se mueve
 
-El motor usa `J8:3` y `J8:5`, que son los pines I2C de la pantalla. Si la LCD y el motor están en la misma Pi puede dejar de verse la pantalla, o el motor moverse al leer la LCD. Solución: mover el motor a otros pines (cambiar `NEMA_STEP` y `NEMA_DIR` en `config.py`) o poner la balanza en una Pi/Arduino aparte.
+Si el software está actualizado pero los cables no: el motor ahora se controla desde `J8:13` (STEP) y `J8:15` (DIR), no desde `J8:3` y `J8:5`. Mover los cables (ver [hardware.md](hardware.md)). Para probarlo solo, con el servicio detenido: `uv run --extra pi python tools/try_nema.py`.
