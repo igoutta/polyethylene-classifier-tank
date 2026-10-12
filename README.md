@@ -80,3 +80,4 @@ La CI de GitHub ejecuta los mismos pasos en cada push.
 - [docs/hardware.md](docs/hardware.md): pines, conexiones y calibración de la balanza
 - [docs/network.md](docs/network.md): conectar la Pi a una red Wi-Fi
 - [docs/troubleshooting.md](docs/troubleshooting.md): problemas frecuentes
+- [docs/pendientes.md](docs/pendientes.md): mejoras pendientes y comprobaciones por hacer en la Pi
